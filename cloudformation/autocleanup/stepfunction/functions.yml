@@ -25,21 +25,6 @@ Parameters:
     Default: 2
     Description: Time in minutes waiting
 
-  OwnerName:
-    Type: String
-    Default: ricardo
-    Description: An arbitrary tag name for the owner of these resources
-
-  StackName:
-    Type: String
-    Description: The name of the stack to which these resources belong
-
-  Environment:
-    Type: String
-    Default: dev
-    AllowedValues: [ prod, staging, dev, qa ]
-    Description: Environment name to append to resources names and tags
-
 Resources:
 
   ########## Lambda Permisions ##########
@@ -71,16 +56,10 @@ Resources:
       Timeout: !Ref TimeOut
       Code:
         S3Bucket: !Ref BucketS3
-        S3Key: stepfunction/Code/lambda07.zip
+        S3Key: stepfunction/Code/lambda03.zip
       Tags:
         - Key: Name
-          Value: !Sub lambda-clean-${Environment}
-        - Key: Owner
-          Value: !Ref OwnerName
-        - Key: StackName
-          Value: !Ref StackName
-        - Key: Environment
-          Value: !Ref Environment
+          Value: !Sub lambda-clean
 
   ########## Lambda Waiting Role ##########
   WaitingRole:
@@ -138,13 +117,7 @@ Resources:
               MaxiL: !Ref MaxLambdaWaitTime
       Tags:
         - Key: Name
-          Value: !Sub lambda-wait-${Environment}
-        - Key: Owner
-          Value: !Ref OwnerName
-        - Key: StackName
-          Value: !Ref StackName
-        - Key: Environment
-          Value: !Ref Environment
+          Value: !Sub lambda-wait
 
 Outputs:
 

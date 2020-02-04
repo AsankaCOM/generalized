@@ -8,21 +8,6 @@ Parameters:
     Type: String
     Description: Email address to notify clean up result
 
-  OwnerName:
-    Type: String
-    Default: ricardo
-    Description: An arbitrary tag name for the owner of these resources
-
-  StackName:
-    Type: String
-    Description: The name of the stack to which these resources belong
-
-  Environment:
-    Type: String
-    Default: dev
-    AllowedValues: [ prod, staging, dev, qa ]
-    Description: Environment name to append to resources names and tags
-
 Resources:
 
   ########## Topic ##########
@@ -35,13 +20,7 @@ Resources:
           Protocol: email
       Tags:
         - Key: Name
-          Value: !Sub topic-notification-${Environment}
-        - Key: Owner
-          Value: !Ref OwnerName
-        - Key: StackName
-          Value: !Ref StackName
-        - Key: Environment
-          Value: !Ref Environment
+          Value: !Sub topic-notification
   
   ########## Topic Policy ##########
   PolicyNotification:
@@ -73,9 +52,8 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/AmazonSNSFullAccess
-        - arn:aws:iam::aws:policy/AmazonEC2FullAccess
-        - arn:aws:iam::aws:policy/AmazonRDSFullAccess
-        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+        - arn:aws:iam::aws:policy/CloudWatchFullAccess
+        - arn:aws:iam::aws:policy/IAMFullAccess
 
   ########## Notify Lambda ##########
   Notiy:
@@ -101,11 +79,17 @@ Resources:
               def lambda_handler(event, context):
                 try:
                   client = boto3.client('sns')
+                  user =  boto3.client('iam').get_user()
+                  logger.info(str(user))
                   Iteration = event['Iteration']
                   Stopped = event['Stopped']
                   message = event['Message']
+                  Greetings = "Dear Student:\n The following message shows the result of the clean up process for the account id: "+"\n"
+                  GroupName = event['LogGroupName']
+                  StreamName = event['LogStreamName']
+                  logs = get_logs(GroupName, StreamName)
                   logger.info('Cleaning >> Sending Notification...')
-                  resus = client.publish(TopicArn='${TopicARN}', Message=message, Subject='Clean Notification')
+                  resus = client.publish(TopicArn='${TopicARN}', Message=Greetings+message + logs, Subject='Clean Notification')
                   response = {"statusCode": 200,"Message": "Succesfull"}
                   logger.info('Cleaning >> Finish...')
                   return response
@@ -113,16 +97,25 @@ Resources:
                   logger.info('Cleaning >> Error while notifying: '+str(e.response['Error']['Message']))
                   response = {"statusCode": 500,"Message": "Error"}
                   return response
+              
+              def get_logs(GroupName, StreamName):
+                try:
+                  logs = "\nExecution Logs:\n"
+                  client = boto3.client('logs')
+                  res = client.get_log_events(logGroupName=GroupName,logStreamName=StreamName)
+                  for event in res['events']:
+                    if '[INFO]' in str(event['message']):
+                      logs += str(event['timestamp'])+" "+str(event['message'])+""
+                  client.delete_log_stream(logGroupName=GroupName,logStreamName=StreamName)
+                  logs += "\nLogs taken from Log Group Name: "+GroupName+"  Stream: "+StreamName+"\n"
+                  return logs
+                except botocore.exceptions.ClientError as e:
+                  logger.info('Cleaning >> Error while getting logs: '+str(e.response['Error']['Message']))
+                  return ""
             - TopicARN: !Ref TopicNotification
       Tags:
         - Key: Name
-          Value: !Sub lambda-notify-${Environment}
-        - Key: Owner
-          Value: !Ref OwnerName
-        - Key: StackName
-          Value: !Ref StackName
-        - Key: Environment
-          Value: !Ref Environment
+          Value: !Sub lambda-notify
 
 Outputs:
 

@@ -21,21 +21,6 @@ Parameters:
     Default: 3
     Description: Number of times it will retry waiting for the resources
 
-  OwnerName:
-    Type: String
-    Default: ricardo
-    Description: An arbitrary tag name for the owner of these resources
-
-  StackName:
-    Type: String
-    Description: The name of the stack to which these resources belong
-
-  Environment:
-    Type: String
-    Default: dev
-    AllowedValues: [ prod, staging, dev, qa ]
-    Description: Environment name to append to resources names and tags
-
 Resources:
 
   ########## State Machine Role ##########
@@ -172,13 +157,7 @@ Resources:
             - SMArn: !Ref StateMachineDefinition
       Tags:
         - Key: Name
-          Value: !Sub stfunction-call-lambda-${Environment}
-        - Key: Owner
-          Value: !Ref OwnerName
-        - Key: StackName
-          Value: !Ref StackName
-        - Key: Environment
-          Value: !Ref Environment
+          Value: !Sub stfunction-call-lambda
 
 Outputs:
   StateMachineFunction:

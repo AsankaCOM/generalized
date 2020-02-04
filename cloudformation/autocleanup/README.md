@@ -1,14 +1,17 @@
 # LambdaSchool
 
-This repository contains the template for the Lambda School project. This template is in charge of stopping EC2, RDS and Sage Maker instaces when the estimated budget is reached.
+This repository contains the template for the Lambda School project. This template is in charge of stopping EC2, RDS and SageMaker instaces when the estimated budget is reached.
 
-## LambdaSchool Diagram
-
-This is the structure of how the template works:
+## LambdaSchool Flowchart
 
 <p align="center">
   <img src="img/LambdaSchool.png"/>
 </p>
+
+### How it works?
+
+The *AWS Budget* resource it's created to stablish a maximum amount of money that can be spent. When the cost of the resources exceed the 100% of the stablished budget, it would activate an *AWS SNS (Simple Notification Service)* to create a *Topic* and publish notifications in all the subscribers, in this case a *Lambda Function*. 
+
 
 ### Elements
 
@@ -50,13 +53,10 @@ This template was built using AWS Cloudformation Nested Stacks. The *master* fil
 | Parameter        | Description           | Type    |
 | ------------- |:-------------:| -----:|
 | S3Bucket      | S3 Bucket where the template is hosted | String |
-| MaxLambdaWaitTime      | Timeout for lambda functions  |   Number |
-| WaitingTime | Time in minutes that the step function will wait berfore retrying      |    Number |
+| WaitingTime | Time in minutes that will wait until retrying again (1 up to 15 minutes)      |    Number |
 | EmailAddress | Email address to send notification when the cleaning process ends     |    Number |
-| RetryTimes | The number of times the process will try to clean the resources     |    Number |
-| BudgetAmout | Budget Treshold     |    Number |
-| OwnerName | An arbitrary tag name for the owner of these resources    |    String |
-| StackName | The name of the stack to which these resources belong      |    String |
-| Environment | Environment name to append to resources names and tags     |    String |
+| RetryTimes | The number of times the process will try to clean the resources if they are still running  |    Number |
+| BudgetAmout | Budget amount that will trigger the clean up process, if the billing goes higher than the amount    |    Number |
+
 
 </center>
