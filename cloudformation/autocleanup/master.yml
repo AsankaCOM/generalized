@@ -10,10 +10,9 @@ Parameters:
 
   WaitingTime:
     Type: Number
-    Default: 2
-    MinValue: 1
-    MaxValue: 15
-    Description: Time in minutes that will wait until retrying again (1 up to 15 minutes)
+    Default: 900
+    MinValue: 120
+    Description: Time in seconds to wait between each retry
   
   EmailAddress:
     Type: String
@@ -29,6 +28,14 @@ Parameters:
     Type: Number
     Description: Budget amount that would stop all the resources.
 
+  OwnerName:
+    Type: String
+    Description: An arbitrary tag name for the owner of these resources
+
+  StackName:
+    Type: String
+    Description: The name of the stack to which these resources belong
+
 Resources:
 
   ########## Lambda Stack Creation ##########
@@ -38,7 +45,8 @@ Resources:
       TemplateURL: !Sub "https://s3.amazonaws.com/${S3Bucket}/stepfunction/functions.yml"
       Parameters:
         BucketS3: !Ref S3Bucket
-        WaitingTime: !Ref WaitingTime
+        OwnerName: !Ref OwnerName
+        StackName: !Ref StackName
 
   NotificationStack:
     Type: AWS::CloudFormation::Stack
@@ -46,6 +54,8 @@ Resources:
       TemplateURL: !Sub "https://s3.amazonaws.com/${S3Bucket}/notification/snsnotification.yml"
       Parameters:
         EmailAddress: !Ref EmailAddress
+        OwnerName: !Ref OwnerName
+        StackName: !Ref StackName
 
   StateMachineStack:
     Type: AWS::CloudFormation::Stack
@@ -53,9 +63,11 @@ Resources:
       TemplateURL: !Sub "https://s3.amazonaws.com/${S3Bucket}/stepfunction/statemachine.yml"
       Parameters:
         Cleaning: !GetAtt LambdaStack.Outputs.CleanUp
-        LambdaWait: !GetAtt LambdaStack.Outputs.WaitingLambda
+        WaitingTime: !Ref WaitingTime
         LambdaNotification: !GetAtt NotificationStack.Outputs.NotificationLambda
         RetryTimes: !Ref RetryTimes
+        OwnerName: !Ref OwnerName
+        StackName: !Ref StackName
 
   ########## Budget Stack Creation ########
   BudgetStack:
@@ -65,3 +77,5 @@ Resources:
       Parameters:
         TriggerBudget: !Ref BudgetAmout
         LambdaFunction: !GetAtt StateMachineStack.Outputs.StartCleaning
+        OwnerName: !Ref OwnerName
+        StackName: !Ref StackName

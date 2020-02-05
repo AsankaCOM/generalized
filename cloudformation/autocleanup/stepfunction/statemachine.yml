@@ -8,9 +8,9 @@ Parameters:
     Type: String
     Description: Lambda function that stops the resources 
 
-  LambdaWait:
-    Type: String
-    Description: Lambda function that waits (back off)
+  WaitingTime:
+    Type: Number
+    Description: Time in seconds to wait between each retry
 
   LambdaNotification:
     Type: String
@@ -20,6 +20,14 @@ Parameters:
     Type: Number
     Default: 3
     Description: Number of times it will retry waiting for the resources
+
+  OwnerName:
+    Type: String
+    Description: An arbitrary tag name for the owner of these resources
+
+  StackName:
+    Type: String
+    Description: The name of the stack to which these resources belong
 
 Resources:
 
@@ -45,6 +53,13 @@ Resources:
                 Action:
                   - lambda:InvokeFunction
                 Resource: "*"
+      Tags:
+        - Key: Name
+          Value: !Sub execution-role-${StackName}
+        - Key: OwnerName
+          Value: !Ref OwnerName
+        - Key: StackName
+          Value: !Ref StackName
   
   ########## State Machine Definition ##########
   StateMachineDefinition:
@@ -67,17 +82,27 @@ Resources:
                 "Clean":{
                   "Type": "Task",
                   "Resource": "${CleanARN}",
-                  "Next": "Decision"
+                  "Next": "Decision",
+                  "Retry": [{
+                    "ErrorEquals": ["States.TaskFailed"],
+                    "IntervalSeconds": 5,
+                    "MaxAttempts": 3
+                  }]
                 },
                 "WaitingState":{
-                  "Type": "Task",
-                  "Resource": "${WaitARN}",
+                  "Type": "Wait",
+                  "Seconds": ${WaitTime},
                   "Next": "Clean"
                 },
                 "SnsNotification":{
                   "Type": "Task",
                   "Resource":"${NotifyARN}",
-                  "End": true
+                  "End": true,
+                  "Retry": [{
+                    "ErrorEquals": ["States.TaskFailed"],
+                    "IntervalSeconds": 5,
+                    "MaxAttempts": 3
+                  }]
                 },
                 "Decision":{
                   "Type": "Choice",
@@ -102,8 +127,15 @@ Resources:
             }
           - CleanARN: !Ref Cleaning
             NotifyARN: !Ref LambdaNotification
-            WaitARN: !Ref LambdaWait
+            WaitTime: !Ref WaitingTime
             NIterations: !Ref RetryTimes
+      Tags:
+        - Key: Name
+          Value: !Sub statemachine-${StackName}
+        - Key: OwnerName
+          Value: !Ref OwnerName
+        - Key: StackName
+          Value: !Ref StackName
 
   ########## Lambda State  Function Invoke ##########
   StepFunctionRole:
@@ -119,6 +151,13 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Tags:
+        - Key: Name
+          Value: !Sub stepfunction-role-${StackName}
+        - Key: OwnerName
+          Value: !Ref OwnerName
+        - Key: StackName
+          Value: !Ref StackName
   
   ########## Lambda State  Function Invoke ##########
   CallStepFunction:
@@ -157,7 +196,11 @@ Resources:
             - SMArn: !Ref StateMachineDefinition
       Tags:
         - Key: Name
-          Value: !Sub stfunction-call-lambda
+          Value: !Sub callstepfunction-${StackName}
+        - Key: OwnerName
+          Value: !Ref OwnerName
+        - Key: StackName
+          Value: !Ref StackName
 
 Outputs:
   StateMachineFunction:
