@@ -1,0 +1,6 @@
+# .gitattributes snippet to force users to use same line endings for project.
+# 
+*.sh -crlf
+*.tpl -crlf
+*.txt -crlf
+*.md -crlf
