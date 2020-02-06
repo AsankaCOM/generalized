@@ -1,4 +1,4 @@
-#use case: Need to setup/configure SFTP and Bastion on the same node . 
+# use case: Need to setup/configure SFTP and Bastion on the same node . 
 - EFS as a centralized storage and creating sftp users on efs as well. 
 - Mount EFS on /home directory 
 - Configure SFTP chroot jailed users on efs
@@ -29,3 +29,6 @@ Files need to be on Ubuntu Instance
 - Scripts
 
 Shell Script to install all configurations and move files to respective directories
+
+
+### *Done for Whitewhale
