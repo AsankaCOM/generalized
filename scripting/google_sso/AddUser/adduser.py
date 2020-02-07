@@ -50,8 +50,8 @@ def get_data(document,aws_idp):
     return value
 
 @cli.command()
-@click.option('--api_key','-k', help= "The API_KEY generated from https://console.developers.google.com/apis/credentials",default="AAAAAAAAAAAAAAAA")
-@click.option('--access_token','-t', help= "The ACCESS_TOKEN generated from https://developers.google.com/oauthplayground/",default="AAAAAAAAAAAAAAA")
+@click.option('--api_key','-k', help= "The API_KEY generated from https://console.developers.google.com/apis/credentials",default="")
+@click.option('--access_token','-t', help= "The ACCESS_TOKEN generated from https://developers.google.com/oauthplayground/",default="")
 @click.option('--file','-f', help= "YAML file with users declaration",default="users.yaml")
 @click.option('--aws_idp','-i', help= "AWS IDP ARN",default="arn:aws:iam::048502202118:saml-provider/google-idp")
 def adduser (api_key,access_token,file,aws_idp):
