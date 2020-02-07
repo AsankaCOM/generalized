@@ -1,7 +1,5 @@
 ## Google API configuration
-​
-### Generating API_KEY and ACCESS_TOKEN
-​
+
 #### Prerequisites
 
 - You need a Google Account to access the Google API Console, request an API key, and register your application.
