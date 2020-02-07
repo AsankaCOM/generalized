@@ -1,0 +1,21 @@
+idp:
+  DEV: arn:aws:iam::<devaccount>:saml-provider/google-idp
+  PROD: arn:aws:iam::<prodaccount>:saml-provider/google-idp
+roles:
+  DEV-ADMIN: "arn:aws:iam::<devaccount>:role/google-idp-admin"
+  PROD-ADMIN: "arn:aws:iam::<prodaccount>:role/google-idp-admin"
+  DEV-READ-ONLY: "arn:aws:iam::<devaccount>:role/google-idp-read-only"
+  PROD-READ-ONLY: "arn:aws:iam::<prodaccount>:role/google-idp-read-only"
+users:
+  kiran.kshatriya@flexengage.com:
+    DEV:
+      roles:
+        - DEV-ADMIN
+        - DEV-READ-ONLY
+    PROD:
+      roles:
+        - PROD-ADMIN
+  vikram.multani@flexengage.com:
+    PROD:
+      roles:
+        - PROD-READ-ONLY
