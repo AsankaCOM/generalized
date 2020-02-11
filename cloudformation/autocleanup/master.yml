@@ -25,7 +25,7 @@ Parameters:
 
   BudgetAmout:
     Type: Number
-    Description: Budget amount that would stop all the resources (Required)
+    Description: Monthly budget amount that would stop all the resources (Required).
 
   OwnerName:
     Type: String
