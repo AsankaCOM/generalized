@@ -55,9 +55,13 @@ The template creates the following resources
 
 * **Important:** When installing the template via cloudformation, it is necesary to confirm subscription that will be sent to the email provided in the parameters. This subscription is to receive the notification of the results of the process.
 
-## Installation
+## Installation Guides:
 
-### Using Launch Stack Template
+There are two options to install the template, choose what best suits you.
+
+### Option 1: Using Launch Stack Template
+
+Use this option if you are provided with a launch stack template link.
 
 1. Go to the installation link that will show Cloudformation's template installation wizard
 
@@ -122,7 +126,7 @@ The template creates the following resources
 </p>
 
 
-### Template Manual Installation (assuming user will be using ROOT account to create stack)
+### Option 2: Template Manual Installation (assuming user will be using ROOT account to create stack)
 
 Use this installation guide if you do not have a launch template link. You will have to use a root account to install the template.
 
