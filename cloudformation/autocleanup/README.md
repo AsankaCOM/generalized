@@ -46,7 +46,7 @@ The template creates the following resources
 | WaitingTime | Time in seconds that will wait until retrying again      |    Number |
 | EmailAddress | Email address to send notification when the cleaning process ends     |    Number |
 | RetryTimes | The number of times the process will try to clean the resources if they are still running  |    Number |
-| BudgetAmout | Budget amount that will trigger the clean up process, if the billing goes higher than the amount    |    Number |
+| BudgetAmout | Budget amount that will trigger the clean up process, if the billing goes higher than the amount. It is a montly budget that will be created    |    Number |
 | OwnerName   | Name of the owner of the resources, this will be used to tag resources that will be created | String
 | StackName   | Name of the stack, this will be used to tag resources that will be created | String
 
