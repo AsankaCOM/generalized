@@ -158,41 +158,6 @@ Use this installation guide if you do not have a launch template link.
   <img src="img/Installation17.png"/>
 </p>
 
-
-### IAM Role for Cloudformation
-
-1. Go to IAM service on your AWS Management Console
-<p align="center">
-  <img src="img/Installation18.png"/>
-</p>
-
-2. Go to Roles and then click on "Create role" button
-<p align="center">
-  <img src="img/Installation19.png"/>
-</p>
-
-3. Under "Select type of trusted entity" section choose AWS service
-<p align="center">
-  <img src="img/Installation20.png"/>
-</p>
-
-4. Under "Choose a use case" section choose CloudFormation Service
-<p align="center">
-  <img src="img/Installation21.png"/>
-</p>
-
-5. Click on "Next" button and choose "AdministratorAcess" policy
-<p align="center">
-  <img src="img/Installation22.png"/>
-</p>
-
-6. Click on "Next" button and add a tag.
-
-7. Click on "Next" button and give a name to your Role and click on "Create role"
-<p align="center">
-  <img src="img/Installation23.png"/>
-</p>
-
 ### CloudFormation Template Installation
 
 1. Go to S3 Bucket where you uploaded the template files and check the "master.yml" file to see its properties.
@@ -263,10 +228,7 @@ Use this installation guide if you do not have a launch template link.
   </p>
 
 
-7. Under "Configuer Stack Options" section you can add a tag if you want. Under "Permissions" section choose the IAM Role you created before. Click "Next"
-<p align="center">
-  <img src="img/Installation30.png"/>
-</p>
+7. Under "Configure Stack Options" section you can add a tag if you want. Click "Next"
 
 8. Review screen will be shown, scroll down to the bottom of the page and check the capabilities options and click "Create Stack"
 <p align="center">
