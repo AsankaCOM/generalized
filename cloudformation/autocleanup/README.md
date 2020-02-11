@@ -122,7 +122,7 @@ The template creates the following resources
 </p>
 
 
-### Template Manual Installation (Using user ROOT account)
+### Template Manual Installation (assuming user will be using ROOT account to create stack)
 
 Use this installation guide if you do not have a launch template link. You will have to use a root account to install the template.
 
