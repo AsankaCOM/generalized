@@ -195,6 +195,44 @@ Resources:
         Value: !Ref pProductionVPCName
       - Key: Environment
         Value: !Ref pEnvironment
+
+  FlowLogRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      RoleName: vpc-flowlog-role-prod
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement: 
+        - Effect: Allow
+          Principal: 
+            Service: 
+            - vpc-flow-logs.amazonaws.com
+          Action: 
+          - sts:AssumeRole
+      Policies:
+          - PolicyName: !Sub ssm-${AWS::StackName}
+            PolicyDocument:
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:DescribeLogStreams
+                    - logs:DescribeLogGroups
+                    - logs:PutLogEvents
+                    - logs:CreateLogStream
+                    - logs:CreateLogGroup
+                  Resource:
+                    - "*"
+
+  rVPCFlowLog:
+    Type: AWS::EC2::FlowLog
+    Properties:
+      DeliverLogsPermissionArn: !GetAtt FlowLogRole.Arn
+      LogGroupName: vpc-flowlog-prod
+      ResourceId: !Ref rVPCProduction
+      ResourceType: VPC
+      TrafficType: ALL
+      
   rSecurityGroupVpcNat:
     Type: AWS::EC2::SecurityGroup
     Properties:

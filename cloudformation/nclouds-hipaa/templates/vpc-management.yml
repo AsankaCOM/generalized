@@ -246,6 +246,43 @@ Resources:
       Tags:
       - Key: Name
         Value: !Ref pManagementVPCName
+  
+  FlowLogRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      RoleName: vpc-flowlog-role-mgmt
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement: 
+        - Effect: Allow
+          Principal: 
+            Service: 
+            - vpc-flow-logs.amazonaws.com
+          Action: 
+          - sts:AssumeRole
+      Policies:
+          - PolicyName: !Sub ssm-${AWS::StackName}
+            PolicyDocument:
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:DescribeLogStreams
+                    - logs:DescribeLogGroups
+                    - logs:PutLogEvents
+                    - logs:CreateLogStream
+                    - logs:CreateLogGroup
+                  Resource:
+                    - "*"
+
+  rVPCFlowLog:
+    Type: AWS::EC2::FlowLog
+    Properties:
+      DeliverLogsPermissionArn: !GetAtt FlowLogRole.Arn
+      LogGroupName: vpc-flowlog-mgmt
+      ResourceId: !Ref rVPCManagement
+      ResourceType: VPC
+      TrafficType: ALL
 
 #   rNatInstanceTemplate:
 #     Type: AWS::CloudFormation::Stack

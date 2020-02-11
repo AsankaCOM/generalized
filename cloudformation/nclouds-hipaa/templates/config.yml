@@ -24,7 +24,12 @@ Resources:
 
   ConfigBucket:
     Type: AWS::S3::Bucket
-
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+              
   ConfigTopic:
     Type: AWS::SNS::Topic
     # Properties:
