@@ -122,9 +122,9 @@ The template creates the following resources
 </p>
 
 
-### Template Manual Installation
+### Template Manual Installation (Using user ROOT account)
 
-Use this installation guide if you do not have a launch template link.
+Use this installation guide if you do not have a launch template link. You will have to use a root account to install the template.
 
 #### Creating an S3 Bucket
 
