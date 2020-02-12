@@ -82,34 +82,27 @@ Parameters:
   pProductionCIDR:
     Description: CIDR block for Production VPC
     Type: String
-    Default: 10.100.0.0/16
   pManagementCIDR:
     Description: CIDR of Management VPC
     Type: String
   pDMZSubnetACIDR:
     Description: CIDR block for DMZ AZ-1b subnet
     Type: String
-    Default: 10.100.10.0/24
   pDMZSubnetBCIDR:
     Description: CIDR block for DMZ AZ-1b subnet
     Type: String
-    Default: 10.100.20.0/24
   pAppPrivateSubnetACIDR:
     Description: CIDR block for Application AZ-1a subnet
     Type: String
-    Default: 10.100.96.0/21
   pAppPrivateSubnetBCIDR:
     Description: CIDR block for Application AZ-1b subnet
     Type: String
-    Default: 10.100.119.0/21
   pDBPrivateSubnetACIDR:
     Description: CIDR block for Private AZ-1a subnet
     Type: String
-    Default: 10.100.194.0/21
   pDBPrivateSubnetBCIDR:
     Description: CIDR block for Private AZ-1b subnet
     Type: String
-    Default: 10.100.212.0/21
   pEC2KeyPair:
     Description: Name of existing EC2 key pair for production hosts
     Type: String

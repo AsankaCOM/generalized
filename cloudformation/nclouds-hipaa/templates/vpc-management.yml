@@ -122,23 +122,18 @@ Parameters:
   pManagementCIDR:
     Description: CIDR block for Management VPC
     Type: String
-    Default: 10.10.0.0/16
   pManagementDMZSubnetACIDR:
     Description: CIDR block for Management AZ-1a subnet
     Type: String
-    Default: 10.10.10.0/24
   pManagementDMZSubnetBCIDR:
     Description: CIDR block for Management AZ-1b subnet
     Type: String
-    Default: 10.10.20.0/24
   pManagementPrivateSubnetACIDR:
     Description: CIDR block for Management AZ-1a subnet
     Type: String
-    Default: 10.10.10.0/24
   pManagementPrivateSubnetBCIDR:
     Description: CIDR block for Management AZ-1b subnet
     Type: String
-    Default: 10.10.20.0/24
   pVPCTenancy:
     Description: Instance tenancy behavior for this VPC
     Type: String

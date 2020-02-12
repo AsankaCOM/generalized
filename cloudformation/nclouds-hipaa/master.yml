@@ -53,16 +53,6 @@ Description: Provides nesting for required stacks to deploy a full sample web ap
 #         default: Quick Start S3 Key Prefix
 
 Parameters:
-  pDBPassword:
-    Description: Mixed alphanumeric and must be between 8 and 28 characters and contain
-      at least one capital letter
-    NoEcho: true
-    Type: String
-    MinLength: 8
-    MaxLength: 28
-    AllowedPattern: '[a-zA-Z0-9!^*\-_+]*'
-    ConstraintDescription: Can only contain alphanumeric characters or the following
-      special characters !^*-_+, between 8 and 28 characters
   pNotifyEmail:
     Description: Notification email address for security events (you will receive
       a confirmation email)
@@ -298,12 +288,12 @@ Resources:
           - !Ref AWS::Region
           - Glacier
 
-  ProductionVpcTemplate:
+  ApplicationVpcTemplate:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL:
         !Sub
-        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}/templates/vpc-production.yml
+        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}/templates/vpc-application.yml
         - QSS3Region:
             !If
             - GovCloudCondition
@@ -313,15 +303,16 @@ Resources:
       Parameters:
         pRegionAZ1Name: !Ref pAvailabilityZoneA
         pRegionAZ2Name: !Ref pAvailabilityZoneB
-        pProductionVPCName: Production VPC
+        pProductionVPCName: Application VPC
+        pProductionCIDR: 10.128.0.0/16
         pBastionSSHCIDR: 0.0.0.0/0
-        pDMZSubnetACIDR: 10.100.10.0/24
-        pDMZSubnetBCIDR: 10.100.20.0/24
-        pManagementCIDR: 10.10.0.0/16
-        pAppPrivateSubnetACIDR: 10.100.96.0/21
-        pAppPrivateSubnetBCIDR: 10.100.119.0/21
-        pDBPrivateSubnetACIDR: 10.100.194.0/21
-        pDBPrivateSubnetBCIDR: 10.100.212.0/21
+        pDMZSubnetACIDR: 10.128.10.0/24
+        pDMZSubnetBCIDR: 10.128.20.0/24
+        pManagementCIDR: 10.127.0.0/16
+        pAppPrivateSubnetACIDR: 10.128.30.0/24
+        pAppPrivateSubnetBCIDR: 10.128.40.0/24
+        pDBPrivateSubnetACIDR: 10.128.50.0/24
+        pDBPrivateSubnetBCIDR: 10.128.60.0/24
         pVPCTenancy: !Ref pVPCTenancy
         pEnvironment:
           !FindInMap
@@ -349,7 +340,7 @@ Resources:
 
   ManagementVpcTemplate:
     Type: AWS::CloudFormation::Stack
-    DependsOn: ProductionVpcTemplate
+    DependsOn: ApplicationVpcTemplate
     Properties:
       TemplateURL:
         !Sub
@@ -363,23 +354,23 @@ Resources:
       Parameters:
         pProductionVPC:
           !GetAtt
-          - ProductionVpcTemplate
+          - ApplicationVpcTemplate
           - Outputs.rVPCProduction
         pRouteTableProdPrivate:
           !GetAtt
-          - ProductionVpcTemplate
+          - ApplicationVpcTemplate
           - Outputs.rRouteTableProdPrivate
         pRouteTableProdPublic:
           !GetAtt
-          - ProductionVpcTemplate
+          - ApplicationVpcTemplate
           - Outputs.rRouteTableProdPublic
-        pProductionCIDR: 10.100.0.0/16
+        pProductionCIDR: 10.128.0.0/16
         pBastionSSHCIDR: 0.0.0.0/0
-        pManagementCIDR: 10.10.0.0/16
-        pManagementDMZSubnetACIDR: 10.10.1.0/24
-        pManagementDMZSubnetBCIDR: 10.10.2.0/24
-        pManagementPrivateSubnetACIDR: 10.10.20.0/24
-        pManagementPrivateSubnetBCIDR: 10.10.30.0/24
+        pManagementCIDR: 10.127.0.0/16
+        pManagementDMZSubnetACIDR: 10.127.1.0/24
+        pManagementDMZSubnetBCIDR: 10.127.2.0/24
+        pManagementPrivateSubnetACIDR: 10.127.20.0/24
+        pManagementPrivateSubnetBCIDR: 10.127.30.0/24
         pManagementVPCName: Management VPC
         pEC2KeyPairBastion: !Ref pEC2KeyPairBastion
         pEC2KeyPair: !Ref pEC2KeyPair
@@ -424,7 +415,7 @@ Resources:
     Condition: LoadConfigRulesTemplate
     DependsOn:
     - IamTemplate
-    - ProductionVpcTemplate
+    - ApplicationVpcTemplate
     - ManagementVpcTemplate
     - LoggingTemplate
     Properties:
@@ -446,7 +437,7 @@ Resources:
     Condition: LoadConfigRulesTemplate
     DependsOn:
     - IamTemplate
-    - ProductionVpcTemplate
+    - ApplicationVpcTemplate
     - ManagementVpcTemplate
     - LoggingTemplate
     Properties:
