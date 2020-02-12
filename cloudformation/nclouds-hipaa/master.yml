@@ -410,26 +410,26 @@ Resources:
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
 
-  ConfigTemplate:
-    Type: AWS::CloudFormation::Stack
-    Condition: LoadConfigRulesTemplate
-    DependsOn:
-    - IamTemplate
-    - ApplicationVpcTemplate
-    - ManagementVpcTemplate
-    - LoggingTemplate
-    Properties:
-      TemplateURL:
-        !Sub
-        - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}/templates/config.yml
-        - QSS3Region:
-            !If
-            - GovCloudCondition
-            - s3-us-gov-west-1
-            - s3
-      TimeoutInMinutes: 20
-      Parameters:
-        DeliveryChannelExists: false
+  #ConfigTemplate:
+  #  Type: AWS::CloudFormation::Stack
+  #  Condition: LoadConfigRulesTemplate
+  #  DependsOn:
+  #  - IamTemplate
+  #  - ApplicationVpcTemplate
+  #  - ManagementVpcTemplate
+  #  - LoggingTemplate
+  #  Properties:
+  #    TemplateURL:
+  #   !Sub
+  #   - https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}/templates/config.yml
+  #   - QSS3Region:
+  #       !If
+  #       - GovCloudCondition
+  #       - s3-us-gov-west-1
+  #       - s3
+  # TimeoutInMinutes: 20
+  # Parameters:
+  #   DeliveryChannelExists: false
 
   ConfigRulesTemplate:
     Type: AWS::CloudFormation::Stack
