@@ -20,7 +20,7 @@ Parameters:
     Description: Name for the ECS Cluster
   DataDogAPIKey:
     Type: AWS::SSM::Parameter::Value<String>
-    Default: /L2-Demo/DD_API_KEY
+    Default: /ECS/DD_API_KEY
     Description: API Key of the DataDog Account on Parameter Store
   InstanceType:
     Type: String

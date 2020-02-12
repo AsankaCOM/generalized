@@ -56,7 +56,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: !Select [ 0, !Cidr [!Ref VpcCIDR, 4, 8]]
+      CidrBlock: !Select [ 0, !Cidr [!Ref VpcCIDR, 6, 8]]
       MapPublicIpOnLaunch: true
       AvailabilityZone: !Select [ 0, !GetAZs '']
       Tags:
@@ -70,7 +70,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: !Select [ 1, !Cidr [!Ref VpcCIDR, 4, 8]]
+      CidrBlock: !Select [ 1, !Cidr [!Ref VpcCIDR, 6, 8]]
       MapPublicIpOnLaunch: true
       AvailabilityZone: !Select [ 1, !GetAZs '']
       Tags:
@@ -84,7 +84,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: !Select [ 2, !Cidr [!Ref VpcCIDR, 4, 8]]
+      CidrBlock: !Select [ 2, !Cidr [!Ref VpcCIDR, 6, 8]]
       MapPublicIpOnLaunch: true
       AvailabilityZone: !Select [ 2, !GetAZs '']
       Tags:
@@ -98,7 +98,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: !Select [ 3, !Cidr [!Ref VpcCIDR, 4, 8]]
+      CidrBlock: !Select [ 3, !Cidr [!Ref VpcCIDR, 6, 8]]
       MapPublicIpOnLaunch: false
       AvailabilityZone: !Select [ 0, !GetAZs '']
       Tags:
@@ -112,7 +112,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: !Select [ 4, !Cidr [!Ref VpcCIDR, 4, 8]]
+      CidrBlock: !Select [ 4, !Cidr [!Ref VpcCIDR, 6, 8]]
       MapPublicIpOnLaunch: false
       AvailabilityZone: !Select [ 1, !GetAZs '']
       Tags:
@@ -126,7 +126,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: !Select [ 5, !Cidr [!Ref VpcCIDR, 4, 8]]
+      CidrBlock: !Select [ 5, !Cidr [!Ref VpcCIDR, 6, 8]]
       MapPublicIpOnLaunch: false
       AvailabilityZone: !Select [ 2, !GetAZs '']
       Tags:
