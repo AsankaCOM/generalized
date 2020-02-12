@@ -13,10 +13,6 @@ Parameters:
     Default: 'false'
     AllowedValues: ['false', 'true']
 
-  ConfigNotificationsEmails:
-    Type: List<String>
-    Description: List of emails to notify
-
 Conditions:
   CreateDeliveryChannel: !Equals [ !Ref DeliveryChannelExists, 'false' ]
 
@@ -54,6 +50,7 @@ Resources:
   ConfigRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: config-role-hippa-uat
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -84,7 +81,7 @@ Resources:
   ConfigRecorder:
     Type: AWS::Config::ConfigurationRecorder
     Properties:
-      Name: default
+      Name: defaultconfig-uat
       RecordingGroup:
         AllSupported: true
       RoleARN: !GetAtt ConfigRole.Arn
@@ -93,6 +90,7 @@ Resources:
     Condition: CreateDeliveryChannel
     Type: AWS::Config::DeliveryChannel
     Properties:
+      Name: delivery-channel-hippa-uat
       ConfigSnapshotDeliveryProperties:
         DeliveryFrequency: Six_Hours
       S3BucketName: !Ref 'ConfigBucket'

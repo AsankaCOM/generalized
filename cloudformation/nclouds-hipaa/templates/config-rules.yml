@@ -35,7 +35,7 @@ Resources:
   ConfigRuleForSSH:
     Type: AWS::Config::ConfigRule
     Properties:
-      ConfigRuleName: check-for-unrestricted-ssh-access
+      ConfigRuleName: check-unrestricted-ssh-access-uat
       Description: Checks whether security groups that are in use disallow unrestricted
         incoming SSH traffic.
       Scope:
@@ -48,7 +48,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Condition: RequiredTagsRule
     Properties:
-      ConfigRuleName: check-ec2-for-required-tag
+      ConfigRuleName: check-ec2-required-tag-uat
       Description: Checks whether EC2 instances and volumes use the required tag.
       InputParameters:
         tag1Key: !Ref pRequiredTagKey
@@ -63,7 +63,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Condition: RequiredTagsRule
     Properties:
-      ConfigRuleName: check-for-unrestricted-ports
+      ConfigRuleName: check-unrestricted-ports-uat
       Description: Checks whether security groups that are in use disallow unrestricted
         incoming TCP traffic to the specified ports.
       InputParameters:
@@ -77,6 +77,7 @@ Resources:
   ConfigRulesLambdaRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: config-rules-lambda-uat
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -90,7 +91,7 @@ Resources:
   ConfigRulesLambdaPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: configrules
+      PolicyName: config-policy-lambda-uat
       PolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -109,7 +110,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Condition: ApprovedAMIsRule
     Properties:
-      ConfigRuleName: check-for-ami-compliance
+      ConfigRuleName: check-ami-compliance-uat
       Description: Checks whether approved AMIs are used.
       Scope:
         ComplianceResourceTypes:
@@ -206,7 +207,7 @@ Resources:
   ConfigRuleForCloudTrail:
     Type: AWS::Config::ConfigRule
     Properties:
-      ConfigRuleName: check-whether-cloudtrail-is-enabled
+      ConfigRuleName: check-cloudtrail-is-enabled-uat
       Description: Checks whether CloudTrail is enabled in this region.
       Scope:
         ComplianceResourceTypes:

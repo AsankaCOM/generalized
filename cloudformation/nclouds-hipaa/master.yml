@@ -430,7 +430,6 @@ Resources:
       TimeoutInMinutes: 20
       Parameters:
         DeliveryChannelExists: false
-        ConfigNotificationsEmails: ronaldo@nclouds.com
 
   ConfigRulesTemplate:
     Type: AWS::CloudFormation::Stack
