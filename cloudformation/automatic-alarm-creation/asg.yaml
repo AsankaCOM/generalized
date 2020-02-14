@@ -2,6 +2,7 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: >-
   ASG Rule and Permission
   Author: Shariq Rizvi
+
 Parameters:
   LambdaFunction:
     Type: String
@@ -9,6 +10,7 @@ Parameters:
   StackName:
     Type: String
     Description: The name of the stack to which these resources belong
+    
 Resources:
   LambdaScheduleASG: 
     Type: AWS::Events::Rule

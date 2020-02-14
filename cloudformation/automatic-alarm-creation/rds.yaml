@@ -9,6 +9,7 @@ Parameters:
   StackName:
     Type: String
     Description: The name of the stack to which these resources belong
+
 Resources:
   LambdaScheduleRDS: 
     Type: AWS::Events::Rule
@@ -29,6 +30,7 @@ Resources:
       Targets:
         - Arn: !Sub ${LambdaFunction}
           Id: LambdaSchedule
+          
   LambdaSchedulePermissionRDS:
     Type: "AWS::Lambda::Permission"
     Properties:

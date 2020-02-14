@@ -7,35 +7,43 @@ Metadata:
           default: "Stack"
         Parameters:
           - StackName
+          
 Parameters:
   StackName:
     Type: String
     Default: stack
     Description: "This name will be used to named the resources"
+
   S3BucketName:
     Type: String
     Default: ""
     Description: "Name of the S3 Bucket"
+
   S3Key:
     Type: String
     Default: ""
     Description: "Locaction of the Lambda code example: compute/index.zip"
+
   ASGTemplateURL:
     Type: String
     Default: ""
     Description: "Template URL"
+
   EC2TemplateURL:
     Type: String
     Default: ""
     Description: "Template URL"
+
   LBTemplateURL:
     Type: String
     Default: ""
     Description: "Template URL"
+
   RDSTemplate:
     Type: String
     Default: ""
     Description: "Template URL"
+
   SNSTopicARN:
     Type: String
     Default: ""

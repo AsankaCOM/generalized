@@ -12,14 +12,17 @@ Parameters:
     Type: String
     Default: stack
     Description: "This name will be used to named the resources"
+
   S3BucketName:
     Type: String
     Default: ""
     Description: "Name of the S3 Bucket"
+
   S3KeyPrefix:
     Type: String
     Default: ""
     Description: "Location of the Lambda code example: compute/index.zip"
+    
   SNSTopicARN:
     Type: String
     Default: ""
