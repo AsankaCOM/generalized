@@ -13,4 +13,4 @@ Datadog monitors related with *ops-datadog* project.
 - process
 - tcp
 
-Datadog api key musr be in order to run the script, values will go to ```datadog.tf``` file.
+Datadog api key must be in order to run the script, values will go to ```datadog.tf``` file.
