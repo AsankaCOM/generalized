@@ -35,19 +35,23 @@ This project contains the templates to spin up a complete environment with for a
 
 These instructions will help you to deploy the complete project in AWS using *CloudFormation*
 
+**Important:** This demo needs to be deployed on *us-west-2* region
+
 ### Prerequisites
 
 To deploy the project it is needed to set up some configuration parameters on *Parameter Store* before deploying the stacks
-  - /ECS/DB_USER : The Database username
-  - /ECS/DB_PASSWORD : The Database password
-  - /ECS/DD_API_KEY : The DataDog Api key to run the agent
+  - /L2-Demo/DB_USER : The Database username
+  - /L2-Demo/DB_PASSWORD : The Database password
+  - /L2-Demo/DD_API_KEY : The DataDog Api key to run the agent
+  - /L2-Demo/AMI : The AMI source Id to apply patching
 
 you can upload these parameters with the following commands:
 
 ```bash
-aws ssm put-parameter --name /ECS/DB_USER --type String --value <db_username>
-aws ssm put-parameter --name /ECS/DB_PASSWORD --type String --value <db_password>
-aws ssm put-parameter --name /ECS/DD_API_KEY --type String --value <dd_api_key>
+aws ssm put-parameter --name /L2-Demo/DB_USER --type String --value <db_username>
+aws ssm put-parameter --name /L2-Demo/DB_PASSWORD --type String --value <db_password>
+aws ssm put-parameter --name /L2-Demo/DD_API_KEY --type String --value <dd_api_key>
+aws ssm put-parameter --name /L2-Demo/AMI --type String --value <ami_id>
 ```
 
 Also you need to upload the templates to an S3 bucket:
@@ -59,7 +63,7 @@ aws s3 sync . "s3://<TemplatesBucketName>/<Prefix>" --exclude "*" --include "*.y
 And finally deploy the stack:
 
 ```bash
-aws cloudformation create-stack --region us-west-2 --stack-name "<StackName>" --template-body file://master.yml --parameters ParameterKey=KeyPair,ParameterValue="<KeyPair>" ParameterKey=S3BucketName,ParameterValue="<TemplatesBucketName>" ParameterKey=S3KeyPrefix,ParameterValue="<Prefix>"  --capabilities CAPABILITY_NAMED_IAM
+aws cloudformation create-stack --region us-west-2 --stack-name "<StackName>" --template-body file://master.yml --parameters ParameterKey=KeyPair,ParameterValue="<KeyPair>" ParameterKey=S3BucketName,ParameterValue="<TemplatesBucketName>" ParameterKey=S3KeyPrefix,ParameterValue="<Prefix>"  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 ```
 
 You can also use the commands scripts included in the *commands* folder by setting the parameters in the **config.yml**:

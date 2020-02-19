@@ -253,7 +253,6 @@ Resources:
     Type: AWS::EKS::Cluster
     Properties:
       Name: !Sub ${ClusterName}-${StackName}-${Environment}
-      Version: 1.11
       RoleArn: !GetAtt EKSServiceRole.Arn
       ResourcesVpcConfig:
         SecurityGroupIds:

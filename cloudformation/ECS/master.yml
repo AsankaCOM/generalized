@@ -51,10 +51,10 @@ Resources:
   VPC:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/infrasctructure/network.yml"
+      TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/infrastructure/network.yml"
       Parameters:
-        AvailabilityZones: !Join [ ",", !GetAZs '']
-        VPCCIDR: !Ref VPCCIDR
+        # AvailabilityZones: !Join [ ",", !GetAZs '']
+        VpcCIDR: !Ref VPCCIDR
         StackName: !Ref StackName
         Environment: !Ref Environment
       Tags:
@@ -77,7 +77,7 @@ Resources:
     Properties:
       TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/infrastructure/load-balancers.yml"
       Parameters:
-        VpcId: !GetAtt VPC.Outputs.VPCID
+        VpcId: !GetAtt VPC.Outputs.VpcId
         SubnetsIds: !GetAtt VPC.Outputs.PublicSubnetsIds
         CertificateArn: !Ref Certificate
         S3BucketLogs: !GetAtt S3Bucket.Outputs.BucketName
@@ -92,7 +92,7 @@ Resources:
     Properties:
       TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/infrastructure/ecs-cluster.yml"
       Parameters:
-        VpcId: !GetAtt VPC.Outputs.VPCID
+        VpcId: !GetAtt VPC.Outputs.VpcId
         SubnetsIds: !GetAtt VPC.Outputs.PrivateSubnetsIds
         ALBSecurityGroup: !GetAtt ALB.Outputs.SecurityGroupId
         ALBDNS: !GetAtt ALB.Outputs.LoadBalancerDomain
@@ -120,7 +120,7 @@ Resources:
     Properties:
       TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/infrastructure/service.yml"
       Parameters:
-        VpcId: !GetAtt VPC.Outputs.VPCID
+        VpcId: !GetAtt VPC.Outputs.VpcId
         Cluster: !GetAtt ECS.Outputs.Cluster
         DesiredCount: 1
         HttpListenerArn: !GetAtt ALB.Outputs.BlueHttpListenerArn
@@ -144,7 +144,7 @@ Resources:
     Properties:
       TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/infrastructure/service.yml"
       Parameters:
-        VpcId: !GetAtt VPC.Outputs.VPCID
+        VpcId: !GetAtt VPC.Outputs.VpcId
         Cluster: !GetAtt ECS.Outputs.Cluster
         DesiredCount: 1
         HttpListenerArn: !GetAtt ALB.Outputs.GreenHttpListenerArn
@@ -190,8 +190,8 @@ Resources:
       Parameters:
         DBClass: db.t2.small
         DBAllocatedStorage: 20
-        VPCId: !GetAtt VPC.Outputs.VPCID
-        SubnetIds: !Join [ ",", [!GetAtt VPC.Outputs.PrivateSubnet1AID, !GetAtt VPC.Outputs.PrivateSubnet2AID]]
+        VPCId: !GetAtt VPC.Outputs.VpcId
+        SubnetIds: !Join [ ",", [!GetAtt VPC.Outputs.PrivateSubnet1Id, !GetAtt VPC.Outputs.PrivateSubnet2Id]]
         Environment: !Ref Environment
         StackName: !Ref StackName
         EC2SecurityGroup: !GetAtt ECS.Outputs.SecurityGroup
@@ -199,19 +199,19 @@ Resources:
         - Key: Environment
           Value: !Sub ${StackName}-${Environment}
   
-  # RedisStack:
-  #   Type: AWS::CloudFormation::Stack
-  #   Properties:
-  #     TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/datastore/elasticache.yml"
-  #     Parameters:
-  #       VPCSubnets: !Join [ ",", [!GetAtt [VPC, Outputs.PrivateSubnet1AID], !GetAtt [VPC, Outputs.PrivateSubnet2AID]]]
-  #       VpcId: !GetAtt VPC.Outputs.VPCID
-  #       StackName: !Ref StackName
-  #       Environment: !Ref Environment
-  #       EC2SecurityGroup: !GetAtt ECS.Outputs.SecurityGroup
-  #     Tags:
-  #       - Key: StackName
-  #         Value: !Sub ${StackName}-${Environment}
+  # # RedisStack:
+  # #   Type: AWS::CloudFormation::Stack
+  # #   Properties:
+  # #     TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/datastore/elasticache.yml"
+  # #     Parameters:
+  # #       VPCSubnets: !Join [ ",", [!GetAtt [VPC, Outputs.PrivateSubnet1AID], !GetAtt [VPC, Outputs.PrivateSubnet2AID]]]
+  # #       VpcId: !GetAtt VPC.Outputs.VpcId
+  # #       StackName: !Ref StackName
+  # #       Environment: !Ref Environment
+  # #       EC2SecurityGroup: !GetAtt ECS.Outputs.SecurityGroup
+  # #     Tags:
+  # #       - Key: StackName
+  # #         Value: !Sub ${StackName}-${Environment}
 
   SSM:
     Type: AWS::CloudFormation::Stack
@@ -231,7 +231,7 @@ Resources:
     Properties:
       TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/continuous-integration/master.yml"
       Parameters:
-        VpcId: !GetAtt VPC.Outputs.VPCID
+        VpcId: !GetAtt VPC.Outputs.VpcId
         PublicSubnetsIds: !GetAtt VPC.Outputs.PublicSubnetsIds
         PrivateSubnetsIds: !GetAtt VPC.Outputs.PrivateSubnetsIds
         ClusterName: Jenkins
@@ -248,7 +248,7 @@ Resources:
     Properties:
       TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/coreos-clair/clair-template.yml"
       Parameters:
-        VpcId: !GetAtt VPC.Outputs.VPCID
+        VpcId: !GetAtt VPC.Outputs.VpcId
         PublicSubnets: !GetAtt VPC.Outputs.PublicSubnetsIds
         PrivateSubnets: !GetAtt VPC.Outputs.PrivateSubnetsIds
         ECSClusterName: CoreOS-Clair

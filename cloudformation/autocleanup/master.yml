@@ -6,37 +6,34 @@ Parameters:
 
   S3Bucket:
     Type: String
-    Description: S3 bucket where the templates are stored
+    Description: S3 bucket where the templates are stored (Required)
 
-  MaxTime:
+  WaitingTime:
     Type: Number
-    Default: 300
-    AllowedValues: [300, 600, 900]
-    Description: Timeout for lambda functions
+    Default: 900
+    MinValue: 300
+    Description: Time in seconds to wait between each retry, minimum value 300s. Do not leave it blank (Required)
+  
+  EmailAddress:
+    Type: String
+    Description: Email to send notification of the process results, requires email subscription confirmation (Required)
 
-  MaxiConcurrency:
+  RetryTimes:
     Type: Number
-    Default: 5
-    Description: Concurrent executions in state machine in a map state
-
-  OwnerName:
-    Type: String
-    Default: ricardo@nclouds.com
-    Description: An arbitrary tag name for the owner of these resources
-
-  StackName:
-    Type: String
-    Description: The name of the stack to which these resources belong
-
-  Environment:
-    Type: String
-    Default: dev
-    AllowedValues: [ prod, staging, dev, qa ]
-    Description: Environment name to append to resources names and tags
+    Default: 3
+    Description: Number of times it will retry waiting for the resources. Do not leave it blank (Required)
 
   BudgetAmout:
     Type: Number
-    Description: Budget amount that would stop all the resources.
+    Description: Monthly budget amount that would stop all the resources (Required).
+
+  OwnerName:
+    Type: String
+    Description: An arbitrary tag name for the owner of these resources (Required)
+
+  StackName:
+    Type: String
+    Description: The name of the stack to which these resources belong (Required)
 
 Resources:
 
@@ -44,36 +41,40 @@ Resources:
   LambdaStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub "https://s3.amazonaws.com/${S3Bucket}/stepfunction/lambdas.yml"
+      TemplateURL: !Sub "https://s3.amazonaws.com/${S3Bucket}/stepfunction/functions.yml"
       Parameters:
-        MaxTime: !Ref MaxTime
+        BucketS3: !Ref S3Bucket
         OwnerName: !Ref OwnerName
         StackName: !Ref StackName
-        Environment: !Ref Environment
 
-  ########## Lambda Stack Creation ##########
-  MachineStateStack:
+  NotificationStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub "https://s3.amazonaws.com/${S3Bucket}/stepfunction/state_machine.yml"
+      TemplateURL: !Sub "https://s3.amazonaws.com/${S3Bucket}/notification/snsnotification.yml"
       Parameters:
-        ListEC2Arn: !GetAtt LambdaStack.Outputs.ListingEC2
-        StopEC2: !GetAtt LambdaStack.Outputs.StoppingEC2
-        ListRDS: !GetAtt LambdaStack.Outputs.ListingRDS
-        StopRDS: !GetAtt LambdaStack.Outputs.StoppingRDS
-        ListSM: !GetAtt LambdaStack.Outputs.ListingSM
-        StopSM: !GetAtt LambdaStack.Outputs.StoppingSM
-        MaxiConcurrency: !Ref MaxiConcurrency
+        EmailAddress: !Ref EmailAddress
         OwnerName: !Ref OwnerName
         StackName: !Ref StackName
-        Environment: !Ref Environment
+
+  StateMachineStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${S3Bucket}/stepfunction/statemachine.yml"
+      Parameters:
+        Cleaning: !GetAtt LambdaStack.Outputs.CleanUp
+        WaitingTime: !Ref WaitingTime
+        LambdaNotification: !GetAtt NotificationStack.Outputs.NotificationLambda
+        RetryTimes: !Ref RetryTimes
+        OwnerName: !Ref OwnerName
+        StackName: !Ref StackName
 
   ########## Budget Stack Creation ########
-
   BudgetStack:
     Type: "AWS::CloudFormation::Stack"
     Properties:
       TemplateURL: !Sub "https://s3.amazonaws.com/${S3Bucket}/budget/budget.yml"
       Parameters:
         TriggerBudget: !Ref BudgetAmout
-        LambdaFunction: !GetAtt MachineStateStack.Outputs.StartCleaning
+        LambdaFunction: !GetAtt StateMachineStack.Outputs.StartCleaning
+        OwnerName: !Ref OwnerName
+        StackName: !Ref StackName
