@@ -1,7 +1,8 @@
 # generalized
 generalized cookbooks for easy deployment
 
-## Terraform
-
-Currently no terraform Repositories.
+## Chef
 ## Cloudformation
+## Lambda
+## Terraform
+## Tools
