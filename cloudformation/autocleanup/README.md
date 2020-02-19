@@ -1,4 +1,4 @@
-# LambdaSchool
+# Autocleanup (LambdaSchool infrastructure)
 
 This repository contains the template for the Lambda School project. This template is in charge of stopping EC2, RDS and SageMaker instaces when the estimated budget is reached.
 

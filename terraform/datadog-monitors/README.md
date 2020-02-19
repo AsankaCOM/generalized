@@ -1,16 +1,11 @@
 # Description
 
-Datadog monitors related with *ops-datadog* project.
+Datadog monitors related with *EKS-demo* project (/cloudformation/EKS project).
 
 ## Monitors:
 
-- cpu
-- disk
-- load
 - memory
-- swap
-- http
-- process
-- tcp
+- host cpu
+- app requests
 
 Datadog api key must be in order to run the script, values will go to ```datadog.tf``` file.
