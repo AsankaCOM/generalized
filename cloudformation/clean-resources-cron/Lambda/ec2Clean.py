@@ -51,16 +51,16 @@ def check_terminate_ec2(ec2_client, instance_id, tags, terminate_now, deleted_ec
     try:
         if terminate_now:
             logger.info('CleanUp >> ec2 has no tags mandatory tags, terminating ec2 instance: '+instance_id['InstanceId'])
-            ec2_client.stop_instances(InstanceIds=[instance_id['InstanceId']])
-            #ec2_client.terminate_instances(InstanceIds=[instance_id['InstanceId']])
+            #ec2_client.stop_instances(InstanceIds=[instance_id['InstanceId']])
+            ec2_client.terminate_instances(InstanceIds=[instance_id['InstanceId']])
             deleted_ec2.append(instance_id['InstanceId']+' on Region '+str(region_name))
         else:
             if check_tags_exist(tags, get_mandatory_tags(), 1):
                 logger.info('CleanUp >> EC2 instance: '+ instance_id['InstanceId']+ ' | Has mandatory tags... ')
             else:
                 logger.info('CleanUp >> EC2 instance: '+instance_id['InstanceId']+ ' missing mandatory tags, will be terminated')
-                ec2_client.stop_instances(InstanceIds=[instance_id['InstanceId']])
-                #ec2_client.terminate_instances(InstanceIds=[instance_id['InstanceId']])
+                #ec2_client.stop_instances(InstanceIds=[instance_id['InstanceId']])
+                ec2_client.terminate_instances(InstanceIds=[instance_id['InstanceId']])
                 deleted_ec2.append(instance_id['InstanceId']+' on Region '+str(region_name))
     except botocore.exceptions.ClientError as e:
         logger.info('CleanUp >> File: ec2Clean.py on check_terminate_ec2, Error Terminating EC2 '+str(instance_id['InstanceId'])+': '+str(e.response['Error']['Message']))

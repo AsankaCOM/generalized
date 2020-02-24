@@ -36,7 +36,7 @@ def ecs_cleaning():
 def check_terminate_ecs(ecs_client, cluster, tags, terminate_now, deleted_ecs, region_name):
     try:
         if terminate_now:
-            logger.info('CleanUp >> Terminating Now, has no tags (Stopping for now): '+cluster['clusterName'])
+            logger.info('CleanUp >> Terminating Now, has no tags: '+cluster['clusterName'])
             delete_cluster(ecs_client, cluster['clusterArn'])
             deleted_ecs.append(cluster['clusterName']+' on Region '+str(region_name))
         else:
@@ -52,13 +52,36 @@ def check_terminate_ecs(ecs_client, cluster, tags, terminate_now, deleted_ecs, r
 
 def delete_cluster(ecs_client, cluster_arn):
     try:
+        delete_services(ecs_client, cluster_arn)
         instances = ecs_client.list_container_instances(cluster=cluster_arn)
         for i in instances['containerInstanceArns']:
             ecs_client.deregister_container_instance(cluster=cluster_arn,containerInstance=i,force=True)
             logger.info('CleanUp >> deregistering container instance: '+str(i))
         ecs_client.delete_cluster(cluster=cluster_arn)
     except botocore.exceptions.ClientError as e:
-         logger.info('CleanUp >> Error terminating ECS Cluster: '+cluster['clusterName']+': '+str(e.response['Error']['Message']))
+         logger.info('CleanUp >> Error terminating ECS Cluster: '+str(cluster_arn)+': '+str(e.response['Error']['Message']))
+
+def delete_task(ecs_client, cluster_arn, service):
+    try:
+        task_set = client.describe_task_sets(cluster=cluster_arn, service=service)
+        for t in task_set['taskSets']:
+            try:
+                ecs_client.delete_task_set(cluster=cluster_arn, service=service, taskSet=t['taskSetArn'], force=True)
+            except botocore.exceptions.ClientError as e:
+                logger.info('CleanUp >> Error terminating ECS task: '+str(cluster_arn)+' | '+' '+str(t['id'])+': '+str(e.response['Error']['Message']))
+    except botocore.exceptions.ClientError as e:
+        logger.info('CleanUp >> Error terminating ECS Cluster: '+str(cluster_arn)+': '+str(e.response['Error']['Message']))
+
+def delete_services(ecs_client, cluster_arn):
+    try:
+        services = ecs_client.list_services(cluster=cluster_arn)
+        for s in services['serviceArns']:
+            try:
+                ecs_client.delete_service(cluster=cluster_arn, service=s, force=True)
+            except botocore.exceptions.ClientError as e:
+                logger.info('CleanUp >> Error terminating ECS Service: '+str(cluster_arn)+' | '+' '+str(s)+': '+str(e.response['Error']['Message']))
+    except botocore.exceptions.ClientError as e:
+         logger.info('CleanUp >> Error terminating ECS Cluster: '+str(cluster_arn)+': '+str(e.response['Error']['Message']))
 
 def get_ecs_report(deleted_ecs):
     try:
