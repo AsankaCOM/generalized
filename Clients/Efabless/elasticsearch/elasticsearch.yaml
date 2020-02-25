@@ -1,0 +1,121 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Template to create elastich search cf
+Parameters:
+  DomainName:
+    Type: String
+    Description: Domain name to use for elastic search
+  EbsEnabled:
+    Type: String
+    Default: true
+    Description: Specifies whether Amazon EBS volumes are attached to data nodes in the Amazon ES domain.
+  VolumeSize:
+    Type: Number
+    Default: 35
+    Description: Size in GB of the EBS volume attached on each node
+  VolumeType:
+    Type: String
+    Default: gp2
+    AllowedValues: [gp2, io1, st1,sc1]
+  NumberOfInstances:
+    Type: Number
+    Default: 2
+    Description: The number of data nodes (instances) to use in the Amazon ES domain
+  InstanceType:
+    Type: String
+    Default: t2.small.elasticsearch
+    Description: Type of instance to use for the nodes
+  ElasticSearchVersion:
+    Type: String
+    Description: The version of Elasticsearch to use
+    Default: 2.3
+    AllowedValues: [7.1, 6.8, 6.7, 6.5, 6.4, 6.3, 6.2, 6.0, 5.6, 5.5, 5.3, 5.1, 2.3, 1.5]
+  SnapshotHour:
+    Type: Number
+    Default: 0
+    Description: The hour in UTC during which the service takes an automated daily snapshot
+    MaxValue: 23
+    MinValue: 0
+  # SecurityGroupsList:
+  #   Type: List<AWS::EC2::SecurityGroup::Id>
+  #   Description: security groups related to Elastic Search configuration
+  # SubnetLists:
+  #   Type: List<AWS::EC2::Subnet::Id>
+  #   Description: list of subnets related to Elastic Search configuration
+  OwnerName:
+    Type: String
+    Default: efabless
+    Description: An arbitrary tag name for the owner of these resources
+  StackName:
+    Type: String
+    Description: The name of the stack to which these resources belong
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [ prod, staging, dev, qa ]
+    Description: Environment name to append to resources names and tags
+Resources:
+  ElasticSearchResource:
+    Type: AWS::Elasticsearch::Domain
+    Properties:
+      DomainName: !Ref DomainName
+      EBSOptions:
+        EBSEnabled: !Ref EbsEnabled
+        VolumeSize: !Ref VolumeSize
+        VolumeType: !Ref VolumeType
+      ElasticsearchClusterConfig:
+        InstanceCount: !Ref NumberOfInstances
+        InstanceType: !Ref InstanceType
+      ElasticsearchVersion: !Ref ElasticSearchVersion
+      SnapshotOptions:
+        AutomatedSnapshotStartHour: !Ref SnapshotHour
+      # VPCOptions:
+      #   SecurityGroupIds: !Ref SecurityGroupsList
+      #   SubnetIds: !Ref SubnetLists
+      AccessPolicies: !Sub |
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "*"
+              },
+              "Action": "es:*",
+              "Resource": "arn:aws:${AWS::Region}:${AWS::AccountId}:domain/${DomainName}/*",
+              "Condition": {
+                "IpAddress": {
+                  "aws:SourceIp": [
+                    "54.67.93.46/32",
+                    "54.67.39.33/32",
+                    "71.83.111.136/32",
+                    "174.87.248.26/32",
+                    "24.203.89.178/32",
+                    "184.161.215.90/32",
+                    "73.223.30.74/32",
+                    "71.89.246.38/32",
+                    "75.104.70.211/32",
+                    "52.52.203.151/32",
+                    "52.8.149.49/32"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      Tags:
+        - Key: OwnerName
+          Value: !Ref OwnerName
+        - Key: StackName
+          Value: !Ref StackName
+        - Key: Environment
+          Value: !Ref Environment
+Outputs:
+  ESArn:
+    Description: Elastic Search ARN
+    Value: !GetAtt ElasticSearchResource.Arn
+  ESDomainArn:
+    Description: Elastic Search Domain ARN
+    Value: !GetAtt ElasticSearchResource.DomainArn
+  ESEndpoint:
+    Description: Elastic Search Endpoint
+    Value: !GetAtt ElasticSearchResource.DomainEndpoint
