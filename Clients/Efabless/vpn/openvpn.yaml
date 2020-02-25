@@ -45,12 +45,11 @@ Parameters:
     Default: openvpn
     Description: The initial admin Password for the VPN.
   
-  ImageId:
-    Type: String
-    # Default: ami-086b2468bd6cf03ae
-    Default: ami-0ca1c6f31c3fb1708
-    Description: AMI to install open vpn
-
+  # ImageId:
+  #   Type: String
+  #   # Default: ami-086b2468bd6cf03ae
+  #   Default: ami-0ca1c6f31c3fb1708
+  #   Description: AMI to install open vpn
 
   ########## TAGING PARAMETERS ##########
   Identifier:
