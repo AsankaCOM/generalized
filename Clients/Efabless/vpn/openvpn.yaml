@@ -1,0 +1,180 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Sets up an OpenVPN Access Server.
+Parameters:
+  ########## VPN PARAMETERS ##########
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: Select vpc
+
+  Subnet:
+    Type: AWS::EC2::Subnet::Id
+    Description: Subnet to launch the instance into.
+
+  InstanceKeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Enter the name of an existing key pair to use in this template.
+  
+  VpnInstanceType:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.nano
+      - t2.micro
+      - t2.small
+      - m3.medium
+      - m4.large
+    Description: Enter a size for the OpenVPN instance from t2.nano, t2.micro, t2.small,
+      m3.medium, or m4.large. Default is t2.micro.
+
+  VpnUsername:
+    Type: String
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    MaxLength: '255'
+    MinLength: '1'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric
+      characters.
+    Default: openvpn
+    Description: The initial admin Username for the VPN.
+  
+  VpnPassword:
+    Type: String
+    NoEcho: 'true'
+    MaxLength: '255'
+    MinLength: '4'
+    ConstraintDescription: must contain atleast 4 characters.
+    Default: openvpn
+    Description: The initial admin Password for the VPN.
+  
+  ImageId:
+    Type: String
+    # Default: ami-086b2468bd6cf03ae
+    Default: ami-0ca1c6f31c3fb1708
+    Description: AMI to install open vpn
+
+
+  ########## TAGING PARAMETERS ##########
+  Identifier:
+    Type: String
+    Description: Identifier to tag resources launched by the template 
+
+  OwnerName:
+    Type: String
+    Default: efabless
+    Description: An arbitrary tag name for the owner of these resources
+
+  StackName:
+    Type: String
+    Description: The name of the stack to which these resources belong
+
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [ prod, staging, dev, qa ]
+    Description: Environment name to append to resources names and tags
+
+Mappings:
+  AwsAMIRegion:
+    us-east-1:
+      AMI: ami-0ca1c6f31c3fb1708
+    us-west-2:
+      AMI: ami-034692da3c6768a18
+    ap-southeast-1:
+      AMI: ami-086b2468bd6cf03ae
+    
+Resources:
+  SecurityGroupVpn:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub ${Identifier}-${Environment}-sg
+      GroupDescription: The VPN Security Group
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: icmp
+          FromPort: '-1'
+          ToPort: '-1'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '943'
+          ToPort: '943'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: udp
+          FromPort: '1194'
+          ToPort: '1194'
+          CidrIp: '0.0.0.0/0'
+      Tags:
+        - Key: OwnerName
+          Value: !Ref OwnerName
+        - Key: StackName
+          Value: !Ref StackName
+        - Key: Environment
+          Value: !Ref Environment
+
+  VpnIpAddress:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  VpnServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !FindInMap [AwsAMIRegion, !Ref "AWS::Region", AMI]
+      InstanceInitiatedShutdownBehavior: stop
+      InstanceType: !Ref 'VpnInstanceType'
+      KeyName: !Ref 'InstanceKeyName'
+      SecurityGroupIds:
+        - !Ref 'SecurityGroupVpn'
+      SourceDestCheck: 'false'
+      SubnetId: !Ref 'Subnet'
+      Tenancy: default
+      UserData:
+        Fn::Base64: !Sub |
+          Content-Type: multipart/mixed; boundary="==BOUNDARY=="
+          MIME-Version: 1.0
+
+          --==BOUNDARY==
+          Content-Type: text/x-shellscript; charset="us-ascii"
+          #!/bin/bash
+          yum -y update
+
+          # Install CloudFormation bootstrap and the jq JSON parser
+          yum install -y aws-cfn-bootstrap jq wget
+
+          # Configure OpenVPN
+          public_hostname=${VpnIpAddress}
+          admin_user=${VpnUsername}
+          admin_pw=${VpnPassword}
+          reroute_gw=0
+          reroute_dns=0
+
+          # Send CloudFormation success signal
+          /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ContainerInstances --configsets InstallAndRun --region ${AWS::Region}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ECSAutoScalingGroup --region ${AWS::Region}
+
+          --==BOUNDARY==--
+      Tags:
+        - Key: OwnerName
+          Value: !Ref OwnerName
+        - Key: StackName
+          Value: !Ref StackName
+        - Key: Environment
+          Value: !Ref Environment
+  
+  IPAssociation:
+    Type: AWS::EC2::EIPAssociation
+    DependsOn: VpnServerInstance
+    Properties: 
+      AllocationId: !GetAtt VpnIpAddress.AllocationId
+      InstanceId: !Ref VpnServerInstance
+
+Outputs:
+  VpnIpAddress:
+    Description: VPN address
+    Value: !Ref VpnIpAddress
