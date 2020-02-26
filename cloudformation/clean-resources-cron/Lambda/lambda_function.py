@@ -17,7 +17,11 @@ def lambda_handler(event, context):
         response = {}
         Message = ""
         logger.info('CleanUp >> ------------ ECS CLEANING ---------------------')
-        Message += ecsClean.ecs_cleaning()+"\n"
+        ###############################
+        ec2_dict = {'regions':[]}
+        Message += ecsClean.ecs_cleaning(ec2_dict)+"\n"
+        logger.info(ec2_dict)
+        ###############################
         logger.info('CleanUp >> ------------ EKS CLEANING ---------------------')
         Message += eksClean.eks_cleaning()+"\n"
         logger.info('CleanUp >> ------------ RDS CLEANING ---------------------')
