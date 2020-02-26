@@ -1,0 +1,21 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeImages",
+                "organizations:ListAccounts",
+                "logs:CreateLogStream",
+                "ec2:ModifySnapshotAttribute",
+                "ec2:CreateTags",
+                "ec2:CopyImage",
+                "ec2:ModifyImageAttribute",
+                "logs:CreateLogGroup",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
