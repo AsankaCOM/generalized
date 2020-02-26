@@ -59,8 +59,7 @@ def check_terminate_rds(rds_client, rds_instance, tags, terminate_now, deleted_r
     try:
         if terminate_now:
             logger.info('CleanUp >> RDS instance has no mandatory tags, terminating RDS instance:'+rds_instance['DBInstanceIdentifier'])
-            #rds_client.stop_db_instance(DBInstanceIdentifier=rds_instance['DBInstanceIdentifier'])
-            #rds_client.delete_db_instance(DBInstanceIdentifier=rds_instance['DBInstanceIdentifier'], SkipFinalSnapshot=True)
+            delete_rds_instance(rds_client, rds_instance['DBInstanceIdentifier'], tags, region_name, reg)
             deleted_rds.append(rds_instance['DBInstanceIdentifier']+' on Region '+str(region_name))
             reg[region_name][0]['terminated'].append(rds_instance['DBInstanceIdentifier'])
         else:
@@ -69,8 +68,7 @@ def check_terminate_rds(rds_client, rds_instance, tags, terminate_now, deleted_r
                 reg[region_name][1]['running'].append(rds_instance['DBInstanceIdentifier'])
             else:
                 logger.info('CleanUp >> RDS instance: '+ rds_instance['DBInstanceIdentifier']+ ' mising mandatory tags, will be terminated')
-                #rds_client.stop_db_instance(DBInstanceIdentifier=rds_instance['DBInstanceIdentifier'])
-                #rds_client.delete_db_instance(DBInstanceIdentifier=rds_instance['DBInstanceIdentifier'], SkipFinalSnapshot=True)
+                delete_rds_instance(rds_client, rds_instance['DBInstanceIdentifier'], tags, region_name, reg)
                 deleted_rds.append(rds_instance['DBInstanceIdentifier']+' on Region '+str(region_name))
                 reg[region_name][0]['terminated'].append(rds_instance['DBInstanceIdentifier'])
     except botocore.exceptions.ClientError as e:
@@ -86,6 +84,20 @@ def get_rds_i_report(deleted_rds):
         return r
     except Exception as e:
         logger.info('Clean Up >> File: rdsClean.py on get_rds_i_report, Error: '+str(e))
+
+def delete_rds_instance(rds_client, instance_id, tags, region_name, reg):
+    try:
+        if onTesting():
+            if tags != None:
+                if check_tags_exist(tags, get_testing_tags(), 1):
+                    rds_client.delete_db_instance(DBInstanceIdentifier=instance_id, SkipFinalSnapshot=True)
+                    reg[region_name][0]['terminated'].append(instance_id)
+        else:
+            reg[region_name][0]['terminated'].append(instance_id)
+            rds_client.delete_db_instance(DBInstanceIdentifier=instance_id, SkipFinalSnapshot=True)
+    except botocore.exceptions.ClientError as e:
+        logger.info('Clean Up >> File: rdsClean.py, Error: '+str(e.response['Error']['Message'])+' when trying to delete: '+str(instance_id))
+        reg[region_name][2]['errors'].append(instance_id)
 
 def rds_cluster_cleaning(rds_cl_dict):
     """
@@ -136,8 +148,7 @@ def check_terminate_rds_cluster(rds_client, rds_cluster, tags, terminate_now, cl
     try:
         if terminate_now:
             logger.info('CleanUp >> RDS instance has no mandatory tags, terminating RDS instance:'+rds_cluster['DBClusterIdentifier'])
-            #rds_client.stop_db_cluster(DBClusterIdentifier=rds_cluster['DBClusterIdentifier'])
-            #rds_client.delete_db_cluster(DBClusterIdentifier=rds_cluster['DBClusterIdentifier'],SkipFinalSnapshot=True)
+            delete_rds_cluster(rds_client, rds_cluster['DBClusterIdentifier'], tags, region_name, reg)
             cluster_rds.append(rds_cluster['DBClusterIdentifier']+' on Region '+str(region_name))
             reg[region_name][0]['terminated'].append(rds_cluster['DBClusterIdentifier'])
         else:
@@ -146,8 +157,7 @@ def check_terminate_rds_cluster(rds_client, rds_cluster, tags, terminate_now, cl
                 reg[region_name][1]['running'].append(rds_cluster['DBClusterIdentifier'])
             else:
                 logger.info('CleanUp >> RDS instance: '+ rds_cluster['DBClusterIdentifier']+ ' mising mandatory tags, will be terminated')
-                #rds_client.stop_db_cluster(DBClusterIdentifier=rds_cluster['DBClusterIdentifier'])
-                #rds_client.delete_db_cluster(DBClusterIdentifier=rds_cluster['DBClusterIdentifier'],SkipFinalSnapshot=True)
+                delete_rds_cluster(rds_client, rds_cluster['DBClusterIdentifier'], tags, region_name, reg)
                 cluster_rds.append(rds_cluster['DBClusterIdentifier']+' on Region '+str(region_name))
                 reg[region_name][0]['terminated'].append(rds_cluster['DBClusterIdentifier'])
     except botocore.exceptions.ClientError as e:
@@ -163,4 +173,18 @@ def get_rds_cl_report(deleted_clusters):
         return r
     except Exception as e:
         logger.info('Clean Up >> File: rdsClean.py on get_rds_i_report, Error: '+str(e))
+
+def delete_rds_cluster(rds_client, instance_id, tags, region_name, reg):
+    try:
+        if onTesting():
+            if tags != None:
+                if check_tags_exist(tags, get_testing_tags(), 1):
+                    rds_client.delete_db_cluster(DBClusterIdentifier=instance_id,SkipFinalSnapshot=True)
+                    reg[region_name][0]['terminated'].append(instance_id)
+        else:
+            reg[region_name][0]['terminated'].append(instance_id)
+            rds_client.delete_db_cluster(DBClusterIdentifier=instance_id,SkipFinalSnapshot=True)
+    except botocore.exceptions.ClientError as e:
+        logger.info('Clean Up >> File: rdsClean.py, Error: '+str(e.response['Error']['Message'])+' when trying to delete: '+str(instance_id))
+        reg[region_name][2]['errors'].append(instance_id)
 #=================================================================================

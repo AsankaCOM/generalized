@@ -94,11 +94,12 @@ def delete_ec2(ec2_client, instance_id, tags, region_name, reg):
         if onTesting():
             if tags != None:
                 if check_tags_exist(tags, get_testing_tags(), 1):
-                    ec2_client.terminate_instances(instance_id=instance_id)
+                    ec2_client.terminate_instances(InstanceIds=[instance_id])
                     reg[region_name][0]['terminated'].append(instance_id)
         else:
             # real termination
             reg[region_name][0]['terminated'].append(instance_id)
+            ec2_client.terminate_instances(InstanceIds=[instance_id])
     except botocore.exceptions.ClientError as e:
         logger.info('Clean Up >> File: ec2Clean.py, Error: '+str(e.response['Error']['Message'])+' when trying to delete: '+str(instance_id))
         reg[region_name][2]['errors'].append(instance_id)
