@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Elastic Beanstalk description
+
+Parameters:
+
+  AppName:
+    Description: Application name.
+    Type: String
+    Default: -
+
+  Environment:
+    Description: Environment name.
+    Type: String
+    Default: dev
+    AllowedValues: [ prod, staging, dev, qa ]
+
+  CNamePrefix:
+    Descriptio: The environment attempts to use this value as the prefix for the CNAME in your Elastic Beanstalk environment URL
+    Type: String
+
+Resources:
+
+  Application:
+    Type: AWS::ElasticBeanstalk::Application
+    Properties:
+      ApplicationName: !Ref AppName
+      Description: App description.
+
+  Enviroment:
+    Type: "AWS::ElasticBeanstalk::Environment"
+    Properties:
+      ApplicationName: !Ref AppName
+      CNAMEPrefix: !Ref CNamePrefix
+      Description: Enviroment description.
+      EnvironmentName: !Sub ${AppName}-${Enviroment}
+      Tags:
+        - Key: Enviroment
+          Value: !Sub ${AppName}-${Enviroment}
+      TemplateName: !Ref ConfigurationTemplate
+
+  ConfigurationTemplate:
+    Type: "AWS::ElasticBeanstalk::ConfigurationTemplate"
+    Properties:
+      ApplicationName: !Ref AppName
+      Description: App description.
+      EnvironmentId: !Ref Enviroment

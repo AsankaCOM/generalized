@@ -1,0 +1,119 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  EKS Cluster
+
+Parameters:
+
+  KeyPair:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Key pair to connect to the instances
+
+  S3BucketName:
+    Type: String
+    Default: EKS-test-bucket
+    AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
+    ConstraintDescription: Bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).
+    Description: S3 bucket name for the CF assets. Bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).
+
+  S3KeyPrefix:
+    Type: String
+    Default: L2-EKS-Demo
+    AllowedPattern: "^[0-9a-zA-Z-/]*$"
+    ConstraintDescription: Key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).
+    Description: S3 key prefix for the CF assets. Key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/). It cannot start or end with a hyphen (-).
+
+  Environment:
+    Type: String
+    Default: Dev
+    AllowedValues: [Prod, Stage, Dev]
+
+Resources: 
+
+  VPC:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/infrastructure/network.yml 
+      Parameters:
+        VpcCIDR: 10.0.0.0/16
+        SetNatGateway: true
+        Environment: !Ref Environment
+        StackName: !Ref AWS::StackName
+      Tags:
+        - Key: Environment
+          Value: !Sub ${AWS::StackName}-${Environment}
+
+  EKS:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/infrastructure/eks-cluster.yml
+      Parameters:
+        VpcId: !GetAtt VPC.Outputs.VpcId
+        Subnets: !Join [",", [ !GetAtt VPC.Outputs.PublicSubnetsIds, !GetAtt VPC.Outputs.PrivateSubnetsIds ] ]
+        KeyName: !Ref KeyPair
+        ClusterName: L2-Demo-EKS
+        NodeInstanceType: t2.small
+        # NodeImageId:
+        DesiredCapacity: 2
+        MinSize: 1
+        MaxSize: 3
+        MinInstancesInService: 1
+        NodeVolumeSize: 20
+        BootstrapArguments: ""
+        Environment: !Ref Environment
+        StackName: !Ref AWS::StackName
+      Tags:
+        - Key: Environment
+          Value: !Sub ${AWS::StackName}-${Environment}
+
+  CICD:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/continuous-integration/deployment-pipeline.yml
+      Parameters:
+        ApplicationName: goapp
+        CodeBuildImage: aws/codebuild/docker:18.09.0-1.7.0
+        ECRRepositoryName: goapp
+        GitHubRepositoryName: generalized
+        GitHubRepositoryBranch: Layer2
+        GitHubOwner: nclouds
+        GitHubToken: /L2-Demo/GitHubToken # ParameterStore path
+        EKSClusterName: !GetAtt EKS.Outputs.ClusterName
+        ServiceName: demo-service
+        Environment: !Ref Environment
+        StackName: !Ref AWS::StackName
+      Tags:
+        - Key: Environment
+          Value: !Sub ${AWS::StackName}-${Environment}
+
+  # # Parameters /L2-Demo/DB_USER and /L2-Demo/DB_PASSWORD must exist on SSM
+  DB:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Retain
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/infrastructure/database.yml"
+      Parameters:
+        DBClass: db.t2.small
+        DBAllocatedStorage: 20
+        VPCId: !GetAtt VPC.Outputs.VpcId
+        SubnetIds: !GetAtt VPC.Outputs.PrivateSubnetsIds
+        Environment: !Ref Environment
+        StackName: !Ref AWS::StackName
+        EC2SecurityGroup: !GetAtt EKS.Outputs.NodeSecurityGroup
+      Tags:
+        - Key: Environment
+          Value: !Sub ${AWS::StackName}-${Environment}
+ 
+  # Clair:
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/coreos-clair/clair-template.yml"
+  #     Parameters:
+  #       VpcId: !GetAtt VPC.Outputs.VPCID
+  #       PublicSubnets: !Join [ ",", [!GetAtt [VPC, Outputs.PublicSubnet1ID], !GetAtt [VPC, Outputs.PublicSubnet2ID]]]
+  #       PrivateSubnets: !Join [ ",", [!GetAtt [VPC, Outputs.PrivateSubnet1AID], !GetAtt [VPC, Outputs.PrivateSubnet2AID]]]
+  #       ECSClusterName: CoreOS-Clair
+  #       ECRRepositoryUri: 695292474035.dkr.ecr.us-west-2.amazonaws.com/coreos-clair:latest
+  #     Tags:
+  #       - Key: StackName
+  #         Value: !Sub ${AWS::StackName}-${Environment}

@@ -1,0 +1,4 @@
+TemplatesBucketName: L2-DEMO
+Prefix: L2-Demo
+StackName: L2-Demo
+KeyPair: ronaldo

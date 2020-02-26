@@ -1,0 +1,154 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Lambda Function to clean up resources
+
+Parameters:
+  BucketS3:
+    Type: String
+    Description: S3 Bucket where Lambda clean code is hosted
+  
+  TimeOut:
+    Type: Number
+    Default: 900
+    AllowedValues: [ 300, 600, 900]
+    Description: Time out to execute lambda function
+
+  EmailAddress:
+    Type: String
+    Default: saqib@nclouds.com
+    Description: Email address to notify clean up result
+
+  OwnerName:
+    Type: String
+    Default: saqib
+    Description: An arbitrary tag name for the owner of these resources, just lowercase names
+  
+  Team:
+    Type: String
+    Default: layer2
+    Description: name of the team which these resources belong, just lowercase names
+
+  Client:
+    Type: String
+    Default: nclouds
+    Description: name of the Client, just lowercase names
+  
+  StackName:
+    Type: String
+    Description: The name of the stack to which these resources belong
+
+Resources:
+  ########## Topic ##########
+  TopicNotification:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: Process-Notification
+      Subscription:
+        - Endpoint: !Ref EmailAddress
+          Protocol: email
+      Tags:
+        - Key: Name
+          Value: !Sub topic-${Team}-${Client}-${StackName}
+        - Key: OwnerName
+          Value: !Ref OwnerName
+        - Key: StackName
+          Value: !Ref StackName
+        - Key: Team
+          Value: !Ref Team
+        - Key: Client
+          Value: !Ref Client
+  
+  ########## EKS Policy ##########
+  EKSPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      Description: Policy giving acces to EKS
+      Path: /
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: 'eks:*'
+            Resource: '*'
+
+  ########## CleanUp Role ##########       
+  CleanUpRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2FullAccess
+        - arn:aws:iam::aws:policy/AmazonRDSFullAccess
+        - arn:aws:iam::aws:policy/AmazonECS_FullAccess
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonSNSFullAccess
+        - !Ref EKSPolicy
+      Tags:
+        - Key: Name
+          Value: !Sub role-clean-${Team}-${Client}-${StackName}
+        - Key: OwnerName
+          Value: !Ref OwnerName
+        - Key: StackName
+          Value: !Ref StackName
+        - Key: Team
+          Value: !Ref Team
+        - Key: Client
+          Value: !Ref Client
+
+  ########## Lambda Code Cleaning ##########
+  Cleaning:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Lambda function that terminates the resources
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt [ CleanUpRole, Arn ]
+      Runtime: python3.6
+      FunctionName: !Sub cleanup-${Team}-${Client}-${StackName}
+      Timeout: !Ref TimeOut
+      Environment:
+        Variables:
+          topic_arn: !Ref TopicNotification
+      Code:
+        S3Bucket: !Ref BucketS3
+        S3Key: Lambda/lambda1.zip
+      Tags:
+        - Key: Name
+          Value: !Sub cleanup-${Team}-${Client}-${StackName}
+        - Key: OwnerName
+          Value: !Ref OwnerName
+        - Key: StackName
+          Value: !Ref StackName
+        - Key: Team
+          Value: !Ref Team
+        - Key: Client
+          Value: !Ref Client
+  
+  ########## Permissions and Schedule ##########
+  ScheduleLambda:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Event Rule to trigger lambdaS
+      ScheduleExpression: cron(0 0 * * ? *)
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt Cleaning.Arn
+          Id: !Ref Cleaning
+  
+  ########## Permissions to Invoke ##########
+  PermissionInvoke:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      FunctionName: !Ref Cleaning
+      SourceArn: !GetAtt ScheduleLambda.Arn
