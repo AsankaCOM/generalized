@@ -1,6 +1,0 @@
-Region: us-west-2
-StackName: L2-EKS-Demo
-S3BucketName: l2-demo
-S3KeyPrefix: L2-EKS-Demo
-Environment: Dev
-KeyPair: LuisKeys
