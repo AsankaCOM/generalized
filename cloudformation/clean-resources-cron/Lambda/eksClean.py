@@ -10,7 +10,7 @@ logger.setLevel(logging.INFO)
 #=================================================================================
 #                               EKS CLEAN
 #=================================================================================
-def eks_cleaning():
+def eks_cleaning(eks_dict):
     try:
         deleted_eks = []
         regions = get_regions()
@@ -19,14 +19,28 @@ def eks_cleaning():
             try:
                 eks_result = eks.list_clusters()
                 logger.info('REGION >> ------------- '+str(region['RegionName'])+" | status: "+str(region['OptInStatus']))
+                ###############################
+                reg = {region['RegionName']:[]}
+                terminated = {'terminated':[]}
+                running = {'running':[]}
+                errors = {'errors':[]}
+                reg[region['RegionName']].append(terminated)
+                reg[region['RegionName']].append(running)
+                reg[region['RegionName']].append(errors)
+                flag = False
+                ###############################
                 for cluster in eks_result['clusters']:
+                    flag = True
                     cl = eks.describe_cluster(name=cluster)
                     t = cl['cluster']['tags']
                     if len(t)>0:
-                        check_terminate_eks(eks, cl['cluster'], t, False, deleted_eks)
+                        check_terminate_eks(eks, cl['cluster'], t, False, deleted_eks, reg)
                     else:
-                        check_terminate_eks(eks, cl['cluster'], None, True, deleted_eks)
+                        check_terminate_eks(eks, cl['cluster'], None, True, deleted_eks, reg)
                 logger.info('REGION >> ------------ END')
+                ###############################
+                if flag:
+                    eks_dict['Regions'].append(reg)
             except botocore.exceptions.ClientError as e:
                 logger.info('CleanUp >> EKS '+str(e.response['Error']['Message']))
         return get_eks_report(deleted_eks)
@@ -34,22 +48,26 @@ def eks_cleaning():
         logger.info('CleanUp >> Error listing EKS '+str(e.response['Error']['Message']))
         return []
 
-def check_terminate_eks(eks_client, cluster, tags, terminate_now, deleted_eks):
+def check_terminate_eks(eks_client, cluster, tags, terminate_now, deleted_eks, reg):
     try:
         if terminate_now:
             logger.info('CleanUp >> EKS has no tags mandatory tags, terminating EKS cluster: '+cluster['name'])
-            delete_eks_cluster(eks_client, cluster)
+            #delete_eks_cluster(eks_client, cluster)
             deleted_eks.append(cluster['name'])
+            reg[region_name][0]['terminated'].append(cluster['name'])
         else:
             if check_tags_exist(tags, get_mandatory_tags(), 2):
                 logger.info('CleanUp >> EKS cluster '+cluster['name']+' | has mandatory tags...')
-                #delete_eks_cluster(eks_client, cluster)      
+                #delete_eks_cluster(eks_client, cluster)
+                reg[region_name][1]['running'].append(cluster['name'])      
             else:
                 logger.info('CleanUp >> EKS cluster '+cluster['name']+' missing mandatory tags, will be terminated')
-                delete_eks_cluster(eks_client, cluster)
+                #delete_eks_cluster(eks_client, cluster)
                 deleted_eks.append(cluster['name'])
+                reg[region_name][0]['terminated'].append(cluster['name'])
     except botocore.exceptions.ClientError as e:
         logger.info('CleanUp >> Error terminating EKS Cluster: '+cluster['name']+': '+str(e.response['Error']['Message']))
+        reg[region_name][2]['errors'].append(cluster['name'])
 
 def delete_eks_node_groups(eks_client, cluster):
     try:

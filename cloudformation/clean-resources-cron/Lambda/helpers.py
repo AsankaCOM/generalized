@@ -1,4 +1,5 @@
 import botocore
+import os
 import boto3
 import datetime
 from datetime import timezone
@@ -97,3 +98,9 @@ def to_hours(createdAt):
 
 def get_mandatory_tags():
     return ['Owner', 'Client', 'Team']
+
+def get_testing_tags():
+    return ['Test','Terminate', 'Ricardo']
+
+def onTesting():
+    return True if os.environ['env'] == 'Test' else False

@@ -17,6 +17,12 @@ Parameters:
     Type: String
     Default: saqib@nclouds.com
     Description: Email address to notify clean up result
+  
+  Environment:
+    Type: String
+    Default: Test
+    AllowedValues: [Test, Prod]
+    Description: select an option for the type of execution
 
   OwnerName:
     Type: String
@@ -118,6 +124,7 @@ Resources:
       Environment:
         Variables:
           topic_arn: !Ref TopicNotification
+          env: !Ref Environment
       Code:
         S3Bucket: !Ref BucketS3
         S3Key: Lambda/lambda1.zip
