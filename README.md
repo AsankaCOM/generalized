@@ -1,7 +1,7 @@
 # generalized
 
 ## Description
-This repository contains general chef templates and lambda scripts
+Repository storing all general Chef templates and Lambda Scripts making it easy to re-use Chef and lambda code.
 
 ## Content
 
@@ -14,8 +14,10 @@ This repository contains general chef templates and lambda scripts
 ### Lambda
 * share-ami-with-multiple-accounts
 
-### Git Usage
-In order to make changes to repository, the following best practices should be followed:
+## Git
+**IMPORTANT NOTE: Git usage**
+In order to make changes to repository, the following best practices MUST be followed:
+
 * Commit messages suggestions with common prefixes:
   * feat(eks-ssm): added ssm policies to eks worker role
   * fix(rds): fixed issues with instance identifier name
