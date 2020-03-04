@@ -1,0 +1,234 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: Sets up AWS Config Rules (qs-1nb14cqcq)
+# Metadata:
+#   Stack:
+#     Value: 0
+#   VersionDate:
+#     Value: 4012016
+#   Identifier:
+#     Value: template-config-rules
+#   Input:
+#     Description: optional tag key
+#   Output:
+#     Description: Outputs ID of all deployed resources
+#   RegionSupport:
+#     Value: NOTGOVCLOUD
+Parameters:
+  pRequiredTagKey:
+    Description: Tag key to check for with EC2/EBS REQUIRED_TAGS rule (optional, leave
+      blank to ignore)
+    Type: String
+Conditions:
+  RequiredTagsRule:
+    !Not
+    - !Equals
+      - ''
+      - !Ref pRequiredTagKey
+  ApprovedAMIsRule:
+    !Not
+    - !Equals
+      - ''
+      - ''
+Resources:
+
+  ConfigRuleForSSH:
+    Type: AWS::Config::ConfigRule
+    Properties:
+      ConfigRuleName: check-unrestricted-ssh-access-uat
+      Description: Checks whether security groups that are in use disallow unrestricted
+        incoming SSH traffic.
+      Scope:
+        ComplianceResourceTypes:
+        - AWS::EC2::SecurityGroup
+      Source:
+        Owner: AWS
+        SourceIdentifier: INCOMING_SSH_DISABLED
+  ConfigRuleForRequiredTags:
+    Type: AWS::Config::ConfigRule
+    Condition: RequiredTagsRule
+    Properties:
+      ConfigRuleName: check-ec2-required-tag-uat
+      Description: Checks whether EC2 instances and volumes use the required tag.
+      InputParameters:
+        tag1Key: !Ref pRequiredTagKey
+      Scope:
+        ComplianceResourceTypes:
+        - AWS::EC2::Volume
+        - AWS::EC2::Instance
+      Source:
+        Owner: AWS
+        SourceIdentifier: REQUIRED_TAGS
+  ConfigRuleForUnrestrictedPorts:
+    Type: AWS::Config::ConfigRule
+    Condition: RequiredTagsRule
+    Properties:
+      ConfigRuleName: check-unrestricted-ports-uat
+      Description: Checks whether security groups that are in use disallow unrestricted
+        incoming TCP traffic to the specified ports.
+      InputParameters:
+        blockedPort1: 3389
+      Scope:
+        ComplianceResourceTypes:
+        - AWS::EC2::SecurityGroup
+      Source:
+        Owner: AWS
+        SourceIdentifier: RESTRICTED_INCOMING_TRAFFIC
+  ConfigRulesLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: config-rules-lambda-uat
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: /
+  ConfigRulesLambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: config-policy-lambda-uat
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action: '*'
+          Resource: '*'
+      Roles:
+      - !Ref ConfigRulesLambdaRole
+  ConfigRulesLambdaProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+      - !Ref ConfigRulesLambdaRole
+  ConfigRuleForAMICompliance:
+    Type: AWS::Config::ConfigRule
+    Condition: ApprovedAMIsRule
+    Properties:
+      ConfigRuleName: check-ami-compliance-uat
+      Description: Checks whether approved AMIs are used.
+      Scope:
+        ComplianceResourceTypes:
+        - AWS::EC2::Instance
+      InputParameters:
+        amiList: ''
+      Source:
+        Owner: CUSTOM_LAMBDA
+        SourceDetails:
+        - EventSource: aws.config
+          MessageType: ConfigurationItemChangeNotification
+        SourceIdentifier:
+          !GetAtt
+          - ComplianceValidationFunction
+          - Arn
+    DependsOn: ConfigPermissionToCallLambdaAMICompliance
+  ConfigPermissionToCallLambdaAMICompliance:
+    Type: AWS::Lambda::Permission
+    Condition: ApprovedAMIsRule
+    Properties:
+      FunctionName:
+        !GetAtt
+        - ComplianceValidationFunction
+        - Arn
+      Action: lambda:InvokeFunction
+      Principal: config.amazonaws.com
+  ComplianceValidationFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: ConfigRulesLambdaRole
+    Properties:
+      Code:
+        ZipFile: |
+            import boto3
+
+            def evaluate_cloudtrail_compliance(config_item, rule_params, context):
+                if ( config_item['logFileValidationEnabled'] and
+                    config_item['includeGlobalServiceEvents'] and 
+                    config_item['isMultiRegionTrail']):
+                    return 'COMPLIANT'
+                return "NON_COMPLIANT"
+
+            def evaulate_ami_compliance(config_item, rule_params, context);
+              ami_id_list = rule_parms['amiList'].split(',')
+              if config_item['configuration']['imageId'] in ami_id_list:
+                return 'COMPLIANT'
+              return 'NON_COMPLIANT'
+
+            def is_applicatable(config_item, event):
+                status = config_item['configurationItemStatus']
+                eventLeftScope = event['eventLeftScope']
+
+                if (status == 'OK' or status == 'ResourceDiscovered'):
+                    if eventLeftScope:
+                        return True
+                return False
+
+            def lambda_handler(event, context):
+                import boto3
+
+                config = boto3.client('configservice')
+                invoking_event = event['invokingEvent']
+                rule_parameters = event['ruleParameters']
+                compliance = "NOT_APPLICABLE"
+
+                resource_type_to_func = {
+                  'AWS::CloudTrail::Trail': evaluate_cloudtrail_compliance,
+                  'AWS::EC2::Instance': evaulate_ami_compliance
+                }
+
+                evaluation_func = resource_type_to_func.get(invoking_event['configurationItem'], None)
+                if evaluation_func and is_applicatable(invoking_event['configurationItem'], event):
+                  compliance = evaluation_func(invoking_event['configurationItem'], rule_parameters, context)
+
+                put_eval_req = {
+                    "Evaluations":[
+                        {
+                        "ComplianceResourceType": invoking_event['configurationItem']['resourceType'],
+                        "ComplainceResourceId": invoking_event['configurationItem']['resourceId'],
+                        "ComplainceType": compliance,
+                        "OrderingTimestamp": invoking_event['configuraitonItemCaptureTime']
+                        }
+                    ],
+                    "ResultToken": event['resultToken']
+                }
+
+                config.put_evaluations(put_eval_req)
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.7
+      Timeout: 30
+      Role:
+        !GetAtt
+        - ConfigRulesLambdaRole
+        - Arn
+  ConfigRuleForCloudTrail:
+    Type: AWS::Config::ConfigRule
+    Properties:
+      ConfigRuleName: check-cloudtrail-is-enabled-uat
+      Description: Checks whether CloudTrail is enabled in this region.
+      Scope:
+        ComplianceResourceTypes:
+        - AWS::EC2::Instance
+      Source:
+        Owner: CUSTOM_LAMBDA
+        SourceDetails:
+        - EventSource: aws.config
+          MessageType: ConfigurationItemChangeNotification
+        SourceIdentifier:
+          !GetAtt
+          - ComplianceValidationFunction
+          - Arn
+    DependsOn: ConfigPermissionToCallLambdaCloudTrail
+  ConfigPermissionToCallLambdaCloudTrail:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        !GetAtt
+        - ComplianceValidationFunction
+        - Arn
+      Action: lambda:InvokeFunction
+      Principal: config.amazonaws.com
+...

@@ -1,0 +1,42 @@
+[
+  {
+    "ParameterKey" : "pDBPassword",
+    "ParameterValue" : "Sw6QNhC7A093" 
+  },
+  {
+    "ParameterKey" : "pNotifyEmail",
+    "ParameterValue" : "ronaldo@nclouds.com" 
+  },
+  {
+    "ParameterKey" : "pEC2KeyPairBastion",
+    "ParameterValue" : "ronaldo" 
+  },
+  {
+    "ParameterKey" : "pEC2KeyPair",
+    "ParameterValue" : "ronaldo" 
+  },
+  {
+    "ParameterKey" : "pSupportsConfig",
+    "ParameterValue" : "true" 
+  },
+  {
+    "ParameterKey" : "pAvailabilityZoneA",
+    "ParameterValue" : "us-west-2a" 
+  },
+  {
+    "ParameterKey" : "pAvailabilityZoneB",
+    "ParameterValue" : "us-west-2b" 
+  },
+  {
+    "ParameterKey" : "pVPCTenancy",
+    "ParameterValue" : "default" 
+  },
+  {
+    "ParameterKey" : "QSS3BucketName",
+    "ParameterValue" : "ronaldo-nclouds" 
+  },
+  {
+    "ParameterKey" : "QSS3KeyPrefix",
+    "ParameterValue" : "nclouds-hipaa/dev" 
+  }
+]
