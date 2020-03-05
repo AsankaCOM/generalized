@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  FunctionName:
+    Type: String
+    Default: tag-macro
+    Description: Name of the function that will be deployed as a macro
+  S3Bucket:
+    Type: String
+    Default: rcutz-test-bucket
+    Description: S3 Bucket where the lambda function is stored
+  S3Key:
+    Type: String
+    Default: lambdas/tags/lambda.zip
+    Description: S3 Key, name of the zip file containing lambda function
+  RuntimeEnv: 
+    Type: String
+    Default: python3.6
+    Description: runtime environment for lambda function
+  # TAGGING PARAMETERS
+  OwnerName:
+    Type: String
+    Default: ricardo
+    Description: An arbitrary tag name for the owner of these resources
+  StackName:
+    Type: String
+    Default: ricardo-stack
+    Description: The name of the stack to which these resources belong
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [ prod, staging, dev, qa ]
+    Description: Environment name to append to resources names and tags
+Resources:
+  ########## Macro Stack Creation ##########
+  MacroStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${S3Bucket}/macros/macro.yml"
+      Parameters:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Ref S3Key
+        RuntimeEnv: !Ref RuntimeEnv
+        FunctionName: !Ref FunctionName
+        OwnerName: !Ref OwnerName
+        StackName: !Ref StackName
+        Environment: !Ref Environment
