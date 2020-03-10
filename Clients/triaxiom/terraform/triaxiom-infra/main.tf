@@ -14,6 +14,7 @@ module "onetick" {
   instance_type     = var.instance_type
   instance_key_name = var.instance_key_name
   instance_subnet   = module.network.public_subnet_id
+  vpc_id            = module.network.vpc.id
 }
 
 module "app" {
@@ -22,4 +23,5 @@ module "app" {
   instance_type     = var.instance_type
   instance_key_name = var.instance_key_name
   instance_subnet   = module.network.public_subnet_id
+  vpc_id            = module.network.vpc.id
 }
