@@ -1,3 +1,4 @@
+
 # Guide to install packer and create AMIs
 
 This *REAMDE.md* file explains step by step how to install packer and create the **application** and the **one-tick** AMIs from it.
@@ -28,8 +29,16 @@ packer validate ./packer/one-tick/packer-template.json
 This is just to verify if the template is valid. If the validation is successfull, have to move to the following command to create the AMIs:
 
 ```bash
-packer build ./packer/application/packer-template.json
+packer build \
+    -var 'aws_access_key=YOUR ACCESS KEY' \
+    -var 'aws_secret_key=YOUR SECRET KEY' \
+    -var 'aws_access_token=YOUR ACCESS TOKEN' \
+    ./packer/application/packer-template.json
 ```
-```
-packer build ./packer/one-tick/packer-template.json
+```bash
+packer build \
+    -var 'aws_access_key=YOUR ACCESS KEY' \
+    -var 'aws_secret_key=YOUR SECRET KEY' \
+    -var 'aws_access_token=YOUR ACCESS TOKEN' \
+    ./packer/one-tick/packer-template.json
 ```
