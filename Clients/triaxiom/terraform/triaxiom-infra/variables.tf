@@ -14,3 +14,12 @@ variable "region" {
 variable "identifier" {
   default = "triaxiom"
 }
+
+variable "onetick_ami" {}
+
+variable "app_ami" {}
+
+variable "instance_type" {}
+
+variable "instance_key_name" {}
+
