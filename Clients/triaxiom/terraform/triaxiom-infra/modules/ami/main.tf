@@ -41,4 +41,8 @@ resource "aws_instance" "ec2_instance" {
   subnet_id       = var.instance_subnet
   key_name        = var.instance_key_name
   security_groups = [aws_security_group.sg_inst.id]
+
+    tags = {
+    Name = var.identifier
+  }
 }
