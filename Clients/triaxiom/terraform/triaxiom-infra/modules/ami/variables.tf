@@ -18,6 +18,26 @@ variable "instance_subnet" {
   type        = string
 }
 
+variable "volume_size" {
+  description = "volume size of an instance"
+  type        = string
+}
+
+variable "module_type" {
+  description = "type of an instance"
+  type        = string
+}
+
+variable "availability_zone" {
+  description = "availabilty zone"
+  type        = string
+}
+
+variable "instance_profile" {
+  description = "instance profile"
+  type        = string
+}
+
 variable "inbound_rules" {
   default = [
     {

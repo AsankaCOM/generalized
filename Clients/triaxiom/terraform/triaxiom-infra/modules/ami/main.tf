@@ -41,8 +41,29 @@ resource "aws_instance" "ec2_instance" {
   subnet_id       = var.instance_subnet
   key_name        = var.instance_key_name
   security_groups = [aws_security_group.sg_inst.id]
+  iam_instance_profile = var.module_type == "app" ? var.instance_profile : null
 
     tags = {
     Name = var.identifier
   }
+}
+
+resource "aws_ebs_volume" "cold_volume" {
+  count = var.volume_size != "" ? 1 : 0
+  
+  availability_zone = var.availability_zone
+  size              = var.volume_size
+  type              = "sc1"
+
+  tags = {
+    Name = var.identifier
+  }
+}
+
+resource "aws_volume_attachment" "device_attach" {
+  count = var.volume_size != "" ? 1 : 0
+
+  device_name = "/dev/xvdf"
+  volume_id   = aws_ebs_volume.cold_volume[0].id
+  instance_id = aws_instance.ec2_instance.id
 }
