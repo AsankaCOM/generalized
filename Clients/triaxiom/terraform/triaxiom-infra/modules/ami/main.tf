@@ -1,4 +1,5 @@
 resource "aws_security_group" "sg_inst" {
+  name              = "${var.identifier}-sg"
   description       = "security group for instance"
   vpc_id            = var.vpc_id
   dynamic "ingress"{
@@ -46,7 +47,7 @@ resource "aws_instance" "ec2_instance" {
   ami             = var.instance_ami
   subnet_id       = var.instance_subnet
   key_name        = var.instance_key_name
-  security_groups = [aws_security_group.sg_inst.id]
+  vpc_security_group_ids = [aws_security_group.sg_inst.id]
   iam_instance_profile = var.module_type == "app" ? var.instance_profile : null
 
     tags = {
@@ -63,7 +64,7 @@ resource "aws_ebs_volume" "cold_volume" {
   type              = "sc1"
 
   tags = {
-    Name = var.identifier
+    Name = "${var.identifier}-vol"
   }
 }
 
