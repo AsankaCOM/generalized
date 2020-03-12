@@ -10,7 +10,7 @@
           "secret_key": "{{user `aws_secret_key`}}",
           "token": "{{user `aws_access_token`}}",
           "region": "us-west-2",
-          "instance_type": "t2.large",
+          "instance_type": "t2.medium",
           "ssh_username": "ec2-user",
           "source_ami": "ami-0e8c04af2729ff1bb",
           "ami_name": "ami-triaxlium-app {{timestamp}}",
