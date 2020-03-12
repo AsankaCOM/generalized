@@ -1,9 +1,12 @@
 #!/bin/bash
 sudo adduser onetick
+sudo yum install git -y
+sudo mkdir /home/onetick/client_data
 sudo su -l onetick -c "curl -O https://repo.continuum.io/archive/Anaconda3-2019.10-Linux-x86_64.sh"
 sudo su -l onetick -c "bash Anaconda3-2019.10-Linux-x86_64.sh -b -p /home/onetick/anaconda3"
 sudo su -l onetick -c "/home/onetick/anaconda3/bin/pip install tzlocal"
 sudo su -l onetick -c "echo \"export PATH=\"/home/onetick/anaconda3/bin:$PATH\"\" >> /home/onetick/.bashrc"
+sudo chown -R onetick:onetick /home/onetick
 sudo su -l onetick -c "(crontab -l 2>/dev/null; echo \"SHELL=/bin/bash\") | crontab -"
 sudo su -l onetick -c "(crontab -l 2>/dev/null; echo \"PATH=/home/onetick/anaconda3/bin:/home/onetick/anaconda3/lib:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 \") | crontab -"

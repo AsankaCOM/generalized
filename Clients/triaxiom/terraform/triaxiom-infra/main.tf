@@ -41,7 +41,7 @@ module "app" {
   instance_type     = var.app_instance_type
   instance_key_name = var.app_instance_key_name
   identifier        = "${var.identifier}-app"
-  instance_subnet   = module.network.private_subnet_id
+  instance_subnet   = module.network.public_subnet_id
   vpc_id            = module.network.vpc.id
   availability_zone = var.availability_zones[0]
   volume_size = var.app_vol_size

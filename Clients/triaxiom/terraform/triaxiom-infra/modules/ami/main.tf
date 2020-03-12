@@ -34,6 +34,12 @@ resource "aws_security_group" "sg_inst" {
   }
 }
 
+resource "aws_eip" "app" {
+  count = var.module_type == "app" ? 1 : 0
+
+  instance = "${aws_instance.ec2_instance.id}"
+  vpc      = true
+}
 
 resource "aws_instance" "ec2_instance" {
   instance_type   = var.instance_type
@@ -46,6 +52,7 @@ resource "aws_instance" "ec2_instance" {
     tags = {
     Name = var.identifier
   }
+
 }
 
 resource "aws_ebs_volume" "cold_volume" {
