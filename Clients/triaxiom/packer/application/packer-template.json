@@ -17,6 +17,11 @@
   }],
   "provisioners": [
     {
+      "destination": "/home/ec2-user/",
+      "source": "files/gitpull.sh",
+      "type": "file"
+    },
+    {
       "type": "shell",
       "scripts": [
         "scripts/setup.sh"

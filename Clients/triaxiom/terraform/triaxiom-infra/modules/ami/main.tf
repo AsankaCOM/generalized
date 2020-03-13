@@ -35,8 +35,8 @@ resource "aws_security_group" "sg_inst" {
   }
 }
 
-resource "aws_eip" "app" {
-  count = var.module_type == "app" ? 1 : 0
+resource "aws_eip" "bastion" {
+  count = var.module_type == "bastion" ? 1 : 0
 
   instance = "${aws_instance.ec2_instance.id}"
   vpc      = true
