@@ -25,11 +25,11 @@ variable "app_vol_size" {
 
 
 variable "onetick_ami" {
-  default = "ami-074f31bb65e5111ef"
+  default = "ami-03b624600de1393ea"
 }
 
 variable "app_ami" {
-  default = "ami-0375290e5f7cf6b40"
+  default = "ami-0763baa349490490c"
 }
 
 variable "bastion_ami" {

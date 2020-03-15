@@ -43,17 +43,18 @@ resource "aws_eip" "bastion" {
 }
 
 resource "aws_instance" "ec2_instance" {
+
   instance_type   = var.instance_type
   ami             = var.instance_ami
   subnet_id       = var.instance_subnet
   key_name        = var.instance_key_name
   vpc_security_group_ids = [aws_security_group.sg_inst.id]
   iam_instance_profile = var.module_type == "app" ? var.instance_profile : null
+	user_data = var.module_type != "bastion" ? "${file("${path.module}/files/mount_vol.sh")}" : null
 
     tags = {
     Name = var.identifier
   }
-
 }
 
 resource "aws_ebs_volume" "cold_volume" {
