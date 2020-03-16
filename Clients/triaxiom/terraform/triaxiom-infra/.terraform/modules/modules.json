@@ -1,0 +1,1 @@
+{"Modules":[{"Key":"network","Source":"./modules/network","Dir":"modules/network"},{"Key":"onetick","Source":"./modules/ami","Dir":"modules/ami"},{"Key":"","Source":"","Dir":"."},{"Key":"app","Source":"./modules/ami","Dir":"modules/ami"},{"Key":"bastion","Source":"./modules/ami","Dir":"modules/ami"},{"Key":"iam","Source":"./modules/iam","Dir":"modules/iam"}]}

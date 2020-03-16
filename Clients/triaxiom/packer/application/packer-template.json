@@ -1,18 +1,16 @@
 {
   "variables": {
           "aws_access_key":"",
-          "aws_secret_key":"",
-          "aws_access_token":""
+          "aws_secret_key":""
   },
   "builders": [{
           "type": "amazon-ebs",
           "access_key": "{{user `aws_access_key`}}",
           "secret_key": "{{user `aws_secret_key`}}",
-          "token": "{{user `aws_access_token`}}",
-          "region": "us-west-2",
+          "region": "us-west-1",
           "instance_type": "t2.medium",
           "ssh_username": "ec2-user",
-          "source_ami": "ami-0e8c04af2729ff1bb",
+          "source_ami": "ami-01c94064639c71719",
           "ami_name": "ami-triaxlium-app {{timestamp}}"
   }],
   "provisioners": [

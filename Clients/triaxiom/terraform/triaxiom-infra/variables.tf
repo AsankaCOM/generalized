@@ -4,11 +4,11 @@ variable "cidr" {
 
 variable "availability_zones" {
   type = list(string)
-  default = ["us-west-2a", "us-west-2c"]
+  default = ["us-west-1a", "us-west-1c"]
 }
 
 variable "region" {
-  default = "us-west-2"
+  default = "us-west-1"
 }
 
 variable "identifier" {
@@ -25,15 +25,15 @@ variable "app_vol_size" {
 
 
 variable "onetick_ami" {
-  default = "ami-03b624600de1393ea"
+  default = "ami-05928e7116d7804f0"
 }
 
 variable "app_ami" {
-  default = "ami-0763baa349490490c"
+  default = "ami-043ee0cd4ebde7ba7"
 }
 
 variable "bastion_ami" {
-  default = "ami-0ce21b51cb31a48b8"
+  default = "ami-01c94064639c71719"
 }
 
 
@@ -51,14 +51,13 @@ variable "bastion_instance_type" {
 
 
 variable "onetick_instance_key_name" {
-  default = "shariq-oregonkey"
+  default = "triaxiom.devops"
 }
 
 variable "app_instance_key_name" {
-  default = "shariq-oregonkey"
+  default = "triaxiom.devops"
 }
 
 variable "bastion_instance_key_name" {
-  default = "shariq-oregonkey"
+  default = "triaxiom.devops"
 }
-

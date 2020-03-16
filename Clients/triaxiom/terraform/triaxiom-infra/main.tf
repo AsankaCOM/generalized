@@ -1,12 +1,12 @@
 provider "aws" {
-    region = "us-west-2"
+    region = "us-west-1"
 }
 
 terraform {
     backend "s3" {
-        bucket = "shariq-terraform1"
+        bucket = "triaxiom-terraform-backend"
         key = "state.tfstate"
-        region = "us-west-2"
+        region = "us-west-1"
     }
 }
 
@@ -15,6 +15,7 @@ module "network" {
   cidr = "${var.cidr}"
   availability_zones = "${var.availability_zones}"
   region = "${var.region}"
+  identifier = var.identifier
 }
 
 module "iam" {
