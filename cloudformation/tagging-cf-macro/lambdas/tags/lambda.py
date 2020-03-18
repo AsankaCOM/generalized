@@ -70,7 +70,7 @@ def tag_exists(searched):
 
 
 def get_allowed_resources_types():
-    return ['AWS::EC2::Instance', 'AWS::RDS::DBInstance', 'AWS::ECS::Cluster', 'AWS::EKS::Cluster', 'AWS::EC2::VPC', 'AWS::DynamoDB::Table']
+    return ['AWS::EC2::Instance', 'AWS::RDS::DBInstance', 'AWS::ECS::Cluster', 'AWS::EC2::VPC', 'AWS::DynamoDB::Table']
 
 def get_mandatory_tags():
     return ['Owner', 'Team', 'Client', 'OwnerEmail']
