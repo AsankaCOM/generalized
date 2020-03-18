@@ -1,0 +1,142 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Lambda Function to clean up resources
+
+Parameters:
+  BucketS3:
+    Type: String
+    Default: ricardo-test-bucket-oregon
+    Description: S3 Bucket where Lambda clean code is hosted
+  
+  TimeOut:
+    Type: Number
+    Default: 900
+    AllowedValues: [ 300, 600, 900]
+    Description: Time out to execute lambda function
+
+  EmailAddress:
+    Type: String
+    Default: ricardo@nclouds.com
+    Description: Email address to notify clean up result
+  
+  Environment:
+    Type: String
+    Default: Test
+    AllowedValues: [Test, Prod]
+    Description: select an option for the type of execution
+
+  OwnerName:
+    Type: String
+    Default: saqib
+    Description: An arbitrary tag name for the owner of these resources, just lowercase names
+  
+  Team:
+    Type: String
+    Default: layer2
+    Description: name of the team which these resources belong, just lowercase names
+
+  Client:
+    Type: String
+    Default: nclouds
+    Description: name of the Client, just lowercase names
+  
+  StackName:
+    Type: String
+    Default: ricardo-stack
+    Description: The name of the stack to which these resources belong
+
+Resources:
+
+  Ec2Stack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${BucketS3}/EC2/ec2_function.yml"
+      Parameters:
+        BucketS3: !Ref BucketS3
+        TimeOut: !Ref TimeOut
+        EmailAddress: !Ref EmailAddress
+        Environment: !Ref Environment
+        OwnerName: !Ref OwnerName
+        Team: !Ref Team
+        Client: !Ref Client
+        StackName: !Ref StackName
+
+  RdsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${BucketS3}/RDS/rds_function.yml"
+      Parameters:
+        BucketS3: !Ref BucketS3
+        TimeOut: !Ref TimeOut
+        EmailAddress: !Ref EmailAddress
+        Environment: !Ref Environment
+        OwnerName: !Ref OwnerName
+        Team: !Ref Team
+        Client: !Ref Client
+        StackName: !Ref StackName
+
+  EcsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${BucketS3}/ECS/ecs_function.yml"
+      Parameters:
+        BucketS3: !Ref BucketS3
+        TimeOut: !Ref TimeOut
+        EmailAddress: !Ref EmailAddress
+        Environment: !Ref Environment
+        OwnerName: !Ref OwnerName
+        Team: !Ref Team
+        Client: !Ref Client
+        StackName: !Ref StackName
+
+  SnsStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${BucketS3}/SNS/sns.yml"
+      Parameters:
+        BucketS3: !Ref BucketS3
+        EmailAddress: !Ref EmailAddress
+        Environment: !Ref Environment
+        OwnerName: !Ref OwnerName
+        Team: !Ref Team
+        Client: !Ref Client
+        StackName: !Ref StackName
+
+  StateStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${BucketS3}/StateMachine/states.yml"
+      Parameters:
+        EcsFunction: !GetAtt EcsStack.Outputs.EcsFunction
+        EcsDeletion: !GetAtt EcsStack.Outputs.EcsDeletion
+        Ec2Function: !GetAtt Ec2Stack.Outputs.Ec2Function
+        RdsFunction: !GetAtt RdsStack.Outputs.RdsFunction
+        NotificationFunction: !GetAtt  SnsStack.Outputs.NotificationLambda
+        WaitingTime: 120
+        RetryTimes: 3
+        EmailAddress: !Ref EmailAddress
+        Environment: !Ref Environment
+        OwnerName: !Ref OwnerName
+        Team: !Ref Team
+        Client: !Ref Client
+        StackName: !Ref StackName
+        
+  ########## Permissions and Schedule ##########
+  ScheduleLambda:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Event Rule to trigger lambdaS
+      ScheduleExpression: cron(0 0 * * ? *)
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt StateStack.Outputs.StartCleaning
+          Id: !GetAtt  StateStack.Outputs.StartCleaningId
+  
+  ########## Permissions to Invoke ##########
+  PermissionInvoke:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      FunctionName: !GetAtt StateStack.Outputs.StartCleaningId
+      SourceArn: !GetAtt ScheduleLambda.Arn

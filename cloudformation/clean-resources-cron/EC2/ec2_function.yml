@@ -44,38 +44,6 @@ Parameters:
     Description: The name of the stack to which these resources belong
 
 Resources:
-  ########## Topic ##########
-  TopicNotification:
-    Type: AWS::SNS::Topic
-    Properties:
-      DisplayName: Process-Notification
-      Subscription:
-        - Endpoint: !Ref EmailAddress
-          Protocol: email
-      Tags:
-        - Key: Name
-          Value: !Sub topic-${Team}-${Client}-${StackName}
-        - Key: OwnerName
-          Value: !Ref OwnerName
-        - Key: StackName
-          Value: !Ref StackName
-        - Key: Team
-          Value: !Ref Team
-        - Key: Client
-          Value: !Ref Client
-  
-  ########## EKS Policy ##########
-  EKSPolicy:
-    Type: 'AWS::IAM::ManagedPolicy'
-    Properties:
-      Description: Policy giving acces to EKS
-      Path: /
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Action: 'eks:*'
-            Resource: '*'
 
   ########## CleanUp Role ##########       
   CleanUpRole:
@@ -90,18 +58,10 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonEC2FullAccess
-        - arn:aws:iam::aws:policy/AmazonRDSFullAccess
-        - arn:aws:iam::aws:policy/AmazonECS_FullAccess
-        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
-        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
-        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
-        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        - arn:aws:iam::aws:policy/AmazonSNSFullAccess
-        - !Ref EKSPolicy
       Tags:
         - Key: Name
-          Value: !Sub role-clean-${Team}-${Client}-${StackName}
+          Value: !Sub role-clean-ec2-${Team}-${Client}-${StackName}
         - Key: OwnerName
           Value: !Ref OwnerName
         - Key: StackName
@@ -115,22 +75,21 @@ Resources:
   Cleaning:
     Type: AWS::Lambda::Function
     Properties:
-      Description: Lambda function that terminates the resources
-      Handler: lambda_function.lambda_handler
+      Description: Lambda function that terminates ec2 resources
+      Handler: ec2_lambda.lambda_handler
       Role: !GetAtt [ CleanUpRole, Arn ]
       Runtime: python3.6
-      FunctionName: !Sub cleanup-${Team}-${Client}-${StackName}
+      FunctionName: !Sub cleanup-ec2-${Team}-${Client}-${StackName}
       Timeout: !Ref TimeOut
       Environment:
         Variables:
-          topic_arn: !Ref TopicNotification
           env: !Ref Environment
       Code:
         S3Bucket: !Ref BucketS3
-        S3Key: Lambda/lambda.zip
+        S3Key: EC2/code/lambda.zip
       Tags:
         - Key: Name
-          Value: !Sub cleanup-${Team}-${Client}-${StackName}
+          Value: !Sub cleanup-ec2-${Team}-${Client}-${StackName}
         - Key: OwnerName
           Value: !Ref OwnerName
         - Key: StackName
@@ -140,22 +99,8 @@ Resources:
         - Key: Client
           Value: !Ref Client
   
-  ########## Permissions and Schedule ##########
-  ScheduleLambda:
-    Type: AWS::Events::Rule
-    Properties:
-      Description: Event Rule to trigger lambdaS
-      ScheduleExpression: cron(0 0 * * ? *)
-      State: ENABLED
-      Targets:
-        - Arn: !GetAtt Cleaning.Arn
-          Id: !Ref Cleaning
-  
-  ########## Permissions to Invoke ##########
-  PermissionInvoke:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      Principal: events.amazonaws.com
-      FunctionName: !Ref Cleaning
-      SourceArn: !GetAtt ScheduleLambda.Arn
+Outputs:
+
+  Ec2Function:
+    Description: Lambda function cleans ec2
+    Value: !GetAtt Cleaning.Arn

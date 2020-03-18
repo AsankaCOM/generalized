@@ -87,7 +87,6 @@ def delete_services(ecs_client, cluster_arn, cluster_name):
         for s in services['serviceArns']:
             ecs_client.update_service(cluster=cluster_arn, service=s, desiredCount=0)
             ecs_client.delete_service(cluster=cluster_arn, service=s, force=True)
-        
     except botocore.exceptions.ClientError as e:
         logger.info('CleanUp >> Error terminating ECS Cluster Services: '+cluster_name+': '+str(e.response['Error']['Message']))
 

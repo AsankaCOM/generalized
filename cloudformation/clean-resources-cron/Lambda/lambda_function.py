@@ -16,16 +16,16 @@ def lambda_handler(event, context):
     try:
         response = {}
         Message = ""
-        ###############################
-        logger.info('CleanUp >> ------------ ECS CLEANING ---------------------')
-        ecs_dict = {'Regions':[]}
-        Message += ecsClean.ecs_cleaning(ecs_dict)+"\n"
-        logger.info(ecs_dict)
-        ###############################
-        logger.info('CleanUp >> ------------ EKS CLEANING ---------------------')
-        eks_dict = {'Regions':[]}
-        Message += eksClean.eks_cleaning(eks_dict)+"\n"
-        logger.info(eks_dict)
+        # ###############################
+        # logger.info('CleanUp >> ------------ ECS CLEANING ---------------------')
+        # ecs_dict = {'Regions':[]}
+        # Message += ecsClean.ecs_cleaning(ecs_dict)+"\n"
+        # logger.info(ecs_dict)
+        # ###############################
+        # logger.info('CleanUp >> ------------ EKS CLEANING ---------------------')
+        # eks_dict = {'Regions':[]}
+        # Message += eksClean.eks_cleaning(eks_dict)+"\n"
+        # logger.info(eks_dict)
         ###############################
         logger.info('CleanUp >> ------------ RDS CLEANING ---------------------')
         rds_dict = {'Regions':[]}

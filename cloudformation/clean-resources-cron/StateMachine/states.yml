@@ -1,0 +1,248 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  State machine to stop resources
+
+Parameters:
+  EcsFunction:
+    Type: String
+    Description: function that cleans ECS
+
+  EcsDeletion:
+    Type: String
+    Description: function that deletes ECS
+  
+  Ec2Function:
+    Type: String
+    Description: function that cleans EC2
+
+  RdsFunction:
+    Type: String
+    Description: function that cleans RDS
+
+  NotificationFunction:
+    Type: String
+    Description: function to send notification
+  
+  WaitingTime:
+    Type: Number
+    Description: Time in seconds to wait between each retry
+
+  RetryTimes:
+    Type: Number
+    Default: 3
+    Description: Number of times it will retry waiting for the resources
+
+  EmailAddress:
+    Type: String
+    Default: saqib@nclouds.com
+    Description: Email address to notify clean up result
+  
+  Environment:
+    Type: String
+    Default: Test
+    AllowedValues: [Test, Prod]
+    Description: select an option for the type of execution
+
+  OwnerName:
+    Type: String
+    Default: saqib
+    Description: An arbitrary tag name for the owner of these resources, just lowercase names
+  
+  Team:
+    Type: String
+    Default: layer2
+    Description: name of the team which these resources belong, just lowercase names
+
+  Client:
+    Type: String
+    Default: nclouds
+    Description: name of the Client, just lowercase names
+  
+  StackName:
+    Type: String
+    Description: The name of the stack to which these resources belong
+
+Resources:
+
+  ########## State Machine Role ##########
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - !Sub states.${AWS::Region}.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: ExecutionRolePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: "*"
+      Tags:
+        - Key: Name
+          Value: !Sub execution-role-${StackName}
+        - Key: OwnerName
+          Value: !Ref OwnerName
+        - Key: StackName
+          Value: !Ref StackName
+        - Key: Team
+          Value: !Ref Team
+        - Key: Client
+          Value: !Ref Client
+
+  ########## State Machine Definition ##########
+  StateMachineDefinition:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !GetAtt [ ExecutionRole, Arn ]
+      DefinitionString:
+        !Sub
+          - |-
+            {
+              "Comment": "State machine that stops and checks instances status",
+              "StartAt": "ecs_listing",
+              "States":{
+                "ecs_listing":{
+                  "Type": "Task",
+                  "Resource": "${lists_ecs}",
+                  "Next": "delete_ecs"
+                },
+                "delete_ecs":{
+                  "Type": "Map",
+                  "InputPath": "$.ECS",
+                  "ItemsPath": "$.terminated",
+                  "MaxConcurrency": 10,
+                  "Iterator":{
+                    "StartAt": "delete_ecs_cluster",
+                    "States": {
+                      "delete_ecs_cluster":{
+                        "Type": "Task",
+                        "Resource":"${delete_ecs}",
+                        "End": true
+                      }
+                    }
+                  },
+                  "ResultPath": "$.ECS.terminated",
+                  "Next": "wait_state"
+                },
+                "wait_state":{
+                  "Type": "Wait",
+                  "Seconds": ${waiting_time},
+                  "Next": "ec2_cleaning"
+                },
+                "ec2_cleaning":{
+                  "Type":"Task",
+                  "Resource": "${ec2_cleaning}",
+                  "Next":"rds_cleaning"
+                },
+                "rds_cleaning":{
+                  "Type":"Task",
+                  "Resource": "${rds_cleaning}",
+                  "Next":"notification"
+                },
+                "notification":{
+                  "Type":"Task",
+                  "Resource": "${notification}",
+                  "End":true
+                }
+              }
+            }
+          - lists_ecs: !Ref EcsFunction
+            delete_ecs: !Ref EcsDeletion
+            ec2_cleaning: !Ref Ec2Function
+            rds_cleaning: !Ref RdsFunction
+            notification: !Ref NotificationFunction
+            waiting_time: !Ref WaitingTime
+      Tags:
+        - Key: Name
+          Value: !Sub statemachine-${StackName}
+        - Key: OwnerName
+          Value: !Ref OwnerName
+        - Key: StackName
+          Value: !Ref StackName
+  
+  ########## Lambda State  Function Invoke ##########
+  StepFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Tags:
+        - Key: Name
+          Value: !Sub stepfunction-role-${StackName}
+        - Key: OwnerName
+          Value: !Ref OwnerName
+        - Key: StackName
+          Value: !Ref StackName
+  
+  ########## Lambda State  Function Invoke ##########
+  CallStepFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Lambda function that is in charge of calling step function
+      Handler: index.lambda_handler
+      Role: !GetAtt [ StepFunctionRole, Arn ]
+      Runtime: python3.6
+      FunctionName: CallStepFunction
+      Timeout: 300
+      Code:
+        ZipFile:
+          !Sub
+            - |-
+              import json
+              import boto3
+              import logging
+              logger = logging.getLogger(__name__)
+              logger.setLevel(logging.INFO)
+              def lambda_handler(event, context):
+                try:
+                  instances = []
+                  response = {}
+                  logger.info('Starting Cleaning Up...')
+                  client = boto3.client('stepfunctions')
+                  client.start_execution(stateMachineArn='${SMArn}')
+                  response = {
+                    "statusCode":200,
+                    "Message": "Executing Clean Up"
+                  }
+                  return response
+                except botocore.exceptions.ClientError as e:
+                  logger.info("Cleaning >> Error while executing cleaning: "+str(e.response['Error']['Message']))
+                  return response
+            - SMArn: !Ref StateMachineDefinition
+      Tags:
+        - Key: Name
+          Value: !Sub callstepfunction-${StackName}
+        - Key: OwnerName
+          Value: !Ref OwnerName
+        - Key: StackName
+          Value: !Ref StackName
+
+Outputs:
+  StateMachineFunction:
+    Description: The State Machine that manages lambda functions
+    Value: !Ref StateMachineDefinition
+
+  StartCleaning:
+    Description: Lambda function calls state machine
+    Value: !GetAtt CallStepFunction.Arn
+
+  StartCleaningId:
+    Description: Lambda id function calls state machine
+    Value: !Ref CallStepFunction
