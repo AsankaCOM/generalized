@@ -1,0 +1,126 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Template to create notification
+
+Parameters:
+  BucketS3:
+    Type: String
+    Description: S3 Bucket where Lambda clean code is hosted
+
+  EmailAddress:
+    Type: String
+    Description: Email address to notify clean up result
+
+  Environment:
+    Type: String
+    Default: Test
+    AllowedValues: [Test, Prod]
+    Description: select an option for the type of execution
+
+  OwnerName:
+    Type: String
+    Default: saqib
+    Description: An arbitrary tag name for the owner of these resources, just lowercase names
+  
+  Team:
+    Type: String
+    Default: layer2
+    Description: name of the team which these resources belong, just lowercase names
+
+  Client:
+    Type: String
+    Default: nclouds
+    Description: name of the Client, just lowercase names
+  
+  StackName:
+    Type: String
+    Description: The name of the stack to which these resources belong
+
+Resources:
+
+  ########## Topic ##########
+  TopicNotification:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: Process-Notification
+      Subscription:
+        - Endpoint: !Ref EmailAddress
+          Protocol: email
+      Tags:
+        - Key: Name
+          Value: !Sub topic-notification-${StackName}
+        - Key: OwnerName
+          Value: !Ref OwnerName
+        - Key: StackName
+          Value: !Ref StackName
+  
+  ########## Topic Policy ##########
+  PolicyNotification:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: SnsTopicPolicy
+          Effect: Allow
+          Principal:
+            Service: budgets.amazonaws.com
+          Action: sns:Publish
+          Resource: !Ref TopicNotification
+      Topics:
+        - Ref: TopicNotification
+
+  ########## Notify Role ##########
+  NotifyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonSNSFullAccess
+        - arn:aws:iam::aws:policy/CloudWatchFullAccess
+        - arn:aws:iam::aws:policy/IAMFullAccess
+      Tags:
+        - Key: Name
+          Value: !Sub notify-role-${StackName}
+        - Key: OwnerName
+          Value: !Ref OwnerName
+        - Key: StackName
+          Value: !Ref StackName
+  
+  ########## Notify Lambda ##########
+  Notiy:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Lambda function that handles notification
+      Handler: sns_lambda.lambda_handler
+      Role: !GetAtt [ NotifyRole, Arn ]
+      Runtime: python3.6
+      FunctionName: notify_lambda
+      Timeout: 600
+      Environment:
+        Variables:
+          env: !Ref Environment
+          topic_arn: !Ref TopicNotification
+      Code:
+        S3Bucket: !Ref BucketS3
+        S3Key: SNS/code/lambda.zip
+      Tags:
+        - Key: Name
+          Value: !Sub notify-lambda-${StackName}
+        - Key: OwnerName
+          Value: !Ref OwnerName
+        - Key: StackName
+          Value: !Ref StackName
+
+Outputs:
+
+  NotificationLambda:
+    Description: Lambda to notify results
+    Value: !GetAtt Notiy.Arn

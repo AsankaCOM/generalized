@@ -16,15 +16,30 @@ def lambda_handler(event, context):
     try:
         response = {}
         Message = ""
-        logger.info('CleanUp >> ------------ ECS CLEANING ---------------------')
-        Message += ecsClean.ecs_cleaning()+"\n"
-        logger.info('CleanUp >> ------------ EKS CLEANING ---------------------')
-        Message += eksClean.eks_cleaning()+"\n"
+        # ###############################
+        # logger.info('CleanUp >> ------------ ECS CLEANING ---------------------')
+        # ecs_dict = {'Regions':[]}
+        # Message += ecsClean.ecs_cleaning(ecs_dict)+"\n"
+        # logger.info(ecs_dict)
+        # ###############################
+        # logger.info('CleanUp >> ------------ EKS CLEANING ---------------------')
+        # eks_dict = {'Regions':[]}
+        # Message += eksClean.eks_cleaning(eks_dict)+"\n"
+        # logger.info(eks_dict)
+        ###############################
         logger.info('CleanUp >> ------------ RDS CLEANING ---------------------')
-        Message += rdsClean.rds_cluster_cleaning()
-        Message += rdsClean.rds_cleaning()+"\n"
+        rds_dict = {'Regions':[]}
+        Message += rdsClean.rds_cluster_cleaning(rds_dict)
+        logger.info(rds_dict)
+        rds_cl_dict = {'Regions':[]}
+        Message += rdsClean.rds_cleaning(rds_cl_dict)+"\n"
+        logger.info(rds_cl_dict)
+        ###############################
         logger.info('CleanUp >> ------------ EC2 CLEANING ---------------------')
-        Message += ec2Clean.ec2_cleaning()+"\n"
+        ec2_dict = {'Regions':[]}
+        Message += ec2Clean.ec2_cleaning(ec2_dict)+"\n"
+        logger.info(ec2_dict)
+        ###############################
         send_notifiction(os.environ['AWS_REGION'], context.log_group_name, context.log_stream_name, Message)
         response = {"statusCode": 200,"Message": "Succesful"}
         return response
