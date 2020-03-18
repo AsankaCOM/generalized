@@ -5,7 +5,6 @@ The macro is in charge of adding tags to the following type of resources:
 * ```AWS::EC2::Instance```
 * ```AWS::RDS::DBInstance```
 * ```AWS::ECS::Cluster```
-* ```AWS::EKS::Cluster```
 * ```AWS::EC2::VPC```
 * ```AWS::DynamoDB::Table```
 
