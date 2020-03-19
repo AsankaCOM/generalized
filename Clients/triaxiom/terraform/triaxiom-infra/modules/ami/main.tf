@@ -73,6 +73,6 @@ resource "aws_volume_attachment" "device_attach" {
   count = var.volume_size != "" ? 1 : 0
 
   device_name = "/dev/xvdf"
-  volume_id   = aws_ebs_volume.cold_volume[0].id
   instance_id = aws_instance.ec2_instance.id
+  volume_id   = aws_ebs_volume.cold_volume[0].id
 }
