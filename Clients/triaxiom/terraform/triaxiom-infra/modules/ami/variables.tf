@@ -1,13 +1,13 @@
 variable "instance_ami" {
   description = "AMI used for the instance"
   default     = ""
-  type        = "string"
+  type        = string
 }
 
 variable "instance_type" {
   description = "Type used for the instance"
   default     = ""
-  type        = "string"
+  type        = string
 }
 
 variable "instance_key_name" {
@@ -86,7 +86,7 @@ variable "vpc_id" {
 }
 
 variable "tags" {
-    description = "Tags to be applied to the resource"
-    default     = {}
-    type        = map
+  description = "Tags to be applied to the resource"
+  default     = {}
+  type        = map
 }

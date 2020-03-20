@@ -1,66 +1,76 @@
 provider "aws" {
-    region = "us-west-1"
+    region = "us-west-2"
 }
 
 terraform {
-    backend "s3" {
-        bucket = "triaxiom-terraform-backend"
-        key = "state.tfstate"
-        region = "us-west-1"
-    }
+  backend "s3" {
+    bucket = "luis-bucket-tests"
+    key = "state.tfstate"
+    region = "us-west-2"
+  }
 }
 
 module "network" {
   source = "./modules/network"
-  cidr = "${var.cidr}"
-  availability_zones = "${var.availability_zones}"
-  region = "${var.region}"
-  identifier = var.identifier
+
+  availability_zones = var.availability_zones
+  identifier         = var.identifier
+  region             = var.region
+  cidr               = var.cidr
+  tags               = var.tags
 }
 
 module "iam" {
   source = "./modules/iam"
+
+  identifier  = var.identifier
+  tags        = var.tags
 }
 
 module "onetick" {
   source = "./modules/ami"
-  instance_ami      = var.onetick_ami
-  instance_type     = var.onetick_instance_type
-  instance_key_name = var.onetick_instance_key_name
-  identifier        = "${var.identifier}-onetick"
-  instance_subnet   = module.network.private_subnet_id
-  vpc_id            = module.network.vpc.id
+
   availability_zone = var.availability_zones[0]
-  volume_size = var.onetick_vol_size
-  module_type = "onetick"
-  instance_profile = ""
+  instance_key_name = var.onetick_instance_key_name
+  instance_profile  = ""
+  instance_subnet   = module.network.private_subnet_id
+  instance_type     = var.onetick_instance_type
+  instance_ami      = var.onetick_ami
+  volume_size       = var.onetick_vol_size
+  module_type       = "onetick"
+  identifier        = "${var.identifier}-onetick"
+  vpc_id            = module.network.vpc.id
+  tags              = var.tags
 }
 
 module "app" {
   source = "./modules/ami"
-  instance_ami      = var.app_ami
-  instance_type     = var.app_instance_type
-  instance_key_name = var.app_instance_key_name
-  identifier        = "${var.identifier}-app"
-  instance_subnet   = module.network.private_subnet_id
-  vpc_id            = module.network.vpc.id
+
   availability_zone = var.availability_zones[0]
-  volume_size = var.app_vol_size
-  module_type = "app"
-  instance_profile = module.iam.node_profile.id
+  instance_key_name = var.app_instance_key_name
+  instance_profile  = module.iam.node_profile.id
+  instance_subnet   = module.network.private_subnet_id
+  instance_type     = var.app_instance_type
+  instance_ami      = var.app_ami
+  volume_size       = var.app_vol_size
+  module_type       = "app"
+  identifier        = "${var.identifier}-app"
+  vpc_id            = module.network.vpc.id
+  tags              = var.tags
 }
 
 module "bastion" {
   source = "./modules/ami"
 
-  instance_ami      = var.bastion_ami
-  instance_type     = var.bastion_instance_type
-  instance_key_name = var.bastion_instance_key_name
-  identifier        = "${var.identifier}-bastion"
-  instance_subnet   = module.network.public_subnet_id
-  vpc_id            = module.network.vpc.id
   availability_zone = var.availability_zones[0]
-  volume_size = ""
-  module_type = "bastion"
-  instance_profile = ""
+  instance_key_name = var.bastion_instance_key_name
+  instance_profile  = ""
+  instance_subnet   = module.network.public_subnet_id
+  instance_type     = var.bastion_instance_type
+  instance_ami      = var.bastion_ami
+  volume_size       = var.bastion_vol_size
+  module_type       = "bastion"
+  identifier        = "${var.identifier}-bastion"
+  vpc_id            = module.network.vpc.id
+  tags              = var.tags
 }
