@@ -10,19 +10,19 @@ locals {
 resource "aws_iam_role" "ec2_s3_ssm_access_role" {
   name               = "${var.identifier}-${terraform.workspace}-s3-ssm-role"
   assume_role_policy = <<EOF
-  {
+{
   "Version": "2012-10-17",
   "Statement": [
     {
       "Action": "sts:AssumeRole",
       "Principal": {
         "Service": "ec2.amazonaws.com"
-        },
+      },
       "Effect": "Allow",
       "Sid": ""
     }
   ]
-  }
+}
 EOF
 
   tags               = local.tags

@@ -1,6 +1,6 @@
 variable "bucket" {
   description = "Backend bucket"
-  default     = "luis-bucket-tests"
+  default     = ""
   type        = string
 }
 
@@ -88,19 +88,19 @@ variable "bastion_instance_type" {
 # keynames
 variable "onetick_instance_key_name" {
   description = "Instance key name for onetick"
-  default     = "LuisKeys"
+  default     = ""
   type        = string
 }
 
 variable "app_instance_key_name" {
   description = "Instance key name for app instance"
-  default     = "LuisKeys"
+  default     = ""
   type        = string
 }
 
 variable "bastion_instance_key_name" {
   description = "Instance key name for bastion instance"
-  default     = "LuisKeys"
+  default     = ""
   type        = string
 }
 
