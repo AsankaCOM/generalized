@@ -1,7 +1,16 @@
+locals {
+  default_tags = {
+      Environment = terraform.workspace
+      Name        = "${var.identifier}-${terraform.workspace}"
+      }
+
+  tags         = merge(local.default_tags, var.tags)
+}
+
 resource "aws_security_group" "sg_inst" {
-  name              = "${var.identifier}-sg"
   description       = "security group for instance"
   vpc_id            = var.vpc_id
+  name              = "${var.identifier}-${terraform.workspace}"
   dynamic "ingress"{
       for_each      = [for r in var.inbound_rules:{
         f_port      = r.from_port
@@ -33,6 +42,8 @@ resource "aws_security_group" "sg_inst" {
         cidr_blocks = [egress.value.cidr]
     } 
   }
+
+  tags  = local.tags
 }
 
 resource "aws_eip" "bastion" {
@@ -40,21 +51,20 @@ resource "aws_eip" "bastion" {
 
   instance = "${aws_instance.ec2_instance.id}"
   vpc      = true
+
+  tags  = local.tags
 }
 
 resource "aws_instance" "ec2_instance" {
-
-  instance_type   = var.instance_type
-  ami             = var.instance_ami
-  subnet_id       = var.instance_subnet
-  key_name        = var.instance_key_name
   vpc_security_group_ids = [aws_security_group.sg_inst.id]
-  iam_instance_profile = var.module_type == "app" ? var.instance_profile : null
-	user_data = var.module_type != "bastion" ? "${file("${path.module}/files/mount_vol.sh")}" : null
+  iam_instance_profile   = var.module_type == "app" ? var.instance_profile : null
+  instance_type          = var.instance_type
+  user_data              = var.module_type != "bastion" ? "${file("${path.module}/files/mount_vol.sh")}" : null
+  subnet_id              = var.instance_subnet
+  key_name               = var.instance_key_name
+  ami                    = var.instance_ami
 
-    tags = {
-    Name = var.identifier
-  }
+  tags                   = local.tags
 }
 
 resource "aws_ebs_volume" "cold_volume" {
@@ -64,15 +74,13 @@ resource "aws_ebs_volume" "cold_volume" {
   size              = var.volume_size
   type              = "sc1"
 
-  tags = {
-    Name = "${var.identifier}-vol"
-  }
+  tags              = local.tags
 }
 
 resource "aws_volume_attachment" "device_attach" {
   count = var.volume_size != "" ? 1 : 0
 
   device_name = "/dev/xvdf"
-  volume_id   = aws_ebs_volume.cold_volume[0].id
   instance_id = aws_instance.ec2_instance.id
+  volume_id   = aws_ebs_volume.cold_volume[0].id
 }

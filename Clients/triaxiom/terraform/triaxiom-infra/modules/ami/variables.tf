@@ -1,68 +1,92 @@
 variable "instance_ami" {
   description = "AMI used for the instance"
-  type        = "string"
+  default     = ""
+  type        = string
 }
 
 variable "instance_type" {
-  description = "type used for the instance"
-  type        = "string"
+  description = "Type used for the instance"
+  default     = ""
+  type        = string
 }
 
 variable "instance_key_name" {
-  description = "instance key used to ssh access"
+  description = "Instance key used to ssh access"
+  default     = ""
   type        = string
 }
 
 variable "instance_subnet" {
-  description = "subnets id to launch the instance"
+  description = "Subnets id to launch the instance"
+  default     = ""
   type        = string
 }
 
 variable "volume_size" {
-  description = "volume size of an instance"
+  description = "Volume size of an instance"
+  default     = ""
   type        = string
 }
 
 variable "module_type" {
-  description = "type of an instance"
+  description = "Type of an instance"
+  default     = ""
   type        = string
 }
 
 variable "availability_zone" {
-  description = "availabilty zone"
+  description = "Availabilty zone"
+  default     = ""
   type        = string
 }
 
 variable "instance_profile" {
-  description = "instance profile"
+  description = "Instance profile"
+  default     = ""
   type        = string
 }
 
 variable "inbound_rules" {
-  default = [
+  description = "Inbound rules"
+  default     = [
     {
       from_port = 0
-      to_port = 0
-      cidr = "0.0.0.0/0"
-      protocol = "-1"
+      to_port   = 0
+      cidr      = "0.0.0.0/0"
+      protocol  = "-1"
     }
   ]
+  type        = list(any)
 }
 
 variable "outbound_rules" {
-  default = [
+  description = "Outbound rules"
+  default     = [
     {
       from_port = 0
-      to_port = 0
-      cidr = "0.0.0.0/0"
-      protocol = "-1"
+      to_port   = 0
+      cidr      = "0.0.0.0/0"
+      protocol  = "-1"
     }
   ]
+  type        = list(any)
 }
 
 variable "identifier" {
-  
+  description = "Name for the AMIS"
+  default     = ""
+  type        = string
 }
 
 
-variable "vpc_id" {}
+variable "vpc_id" {
+  description = "VPC where the instances will be deployed"
+  default     = ""
+  type        = string
+}
+
+variable "tags" {
+  description = "Tags to be applied to the resource"
+  default     = {}
+  type        = map
+}

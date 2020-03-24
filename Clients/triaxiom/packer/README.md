@@ -28,17 +28,14 @@ packer validate ./packer/one-tick/packer-template.json
 
 This is just to verify if the template is valid. If the validation is successfull, have to move to the following command to create the AMIs:
 
+Application AMI:
 ```bash
 packer build \
-    -var 'aws_access_key=YOUR ACCESS KEY' \
-    -var 'aws_secret_key=YOUR SECRET KEY' \
-    -var 'aws_access_token=YOUR ACCESS TOKEN' \
+    -var-file=variables.json \
     ./packer/application/packer-template.json
 ```
 ```bash
 packer build \
-    -var 'aws_access_key=YOUR ACCESS KEY' \
-    -var 'aws_secret_key=YOUR SECRET KEY' \
-    -var 'aws_access_token=YOUR ACCESS TOKEN' \
+    -var-file=variables.json \
     ./packer/one-tick/packer-template.json
 ```
