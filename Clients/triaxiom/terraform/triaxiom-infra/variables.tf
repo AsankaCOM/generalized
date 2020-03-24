@@ -1,9 +1,8 @@
 variable "bucket" {
   description = "Backend bucket"
-  default     = ""
+  default     = "triaxiom-teraform-state"
   type        = string
 }
-
 
 variable "cidr" {
   description = "Range of IPv4 addresses for your VPC in CIDR block format"
@@ -13,7 +12,7 @@ variable "cidr" {
 
 variable "availability_zones" {
   description = "List of availability zones where subnets will be deployed"
-  default     = ["us-west-2a", "us-west-2c"]
+  default     = ["us-west-2a", "us-west-2b" ,"us-west-2c"]
   type        = list(string)
 }
 
@@ -50,19 +49,19 @@ variable "bastion_vol_size" {
 # amis
 variable "onetick_ami" {
   description = "Ami for onetick instance"
-  default     = "ami-0ce21b51cb31a48b8"
+  default     = "ami-0d04be32f605af0be"
   type        = string
 }
 
 variable "app_ami" {
   description = "Ami for app instance"
-  default     = "ami-0ce21b51cb31a48b8"
+  default     = "ami-092401364d7a54995"
   type        = string
 }
 
 variable "bastion_ami" {
   description = "Ami for bastion instance"
-  default     = "ami-0ce21b51cb31a48b8"
+  default     = "ami-0e8c04af2729ff1bb"
   type        = string
 }
 
@@ -88,24 +87,24 @@ variable "bastion_instance_type" {
 # keynames
 variable "onetick_instance_key_name" {
   description = "Instance key name for onetick"
-  default     = ""
+  default     = "triaxiom-oregon"
   type        = string
 }
 
 variable "app_instance_key_name" {
   description = "Instance key name for app instance"
-  default     = ""
+  default     = "triaxiom-oregon"
   type        = string
 }
 
 variable "bastion_instance_key_name" {
   description = "Instance key name for bastion instance"
-  default     = ""
+  default     = "triaxiom-oregon"
   type        = string
 }
 
 variable "tags" {
     description = "Tags to be applied to the resource"
-    default     = {Env = "Test"}
+    default     = {Env = "Prod"}
     type        = map
 }

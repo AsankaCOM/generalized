@@ -4,7 +4,7 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket = "luis-bucket-tests"
+    bucket = "triaxiom-teraform-state"
     key = "state.tfstate"
     region = "us-west-2"
   }

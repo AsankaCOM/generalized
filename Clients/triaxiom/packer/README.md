@@ -31,11 +31,11 @@ This is just to verify if the template is valid. If the validation is successful
 Application AMI:
 ```bash
 packer build \
-    -var-file=variables.json \
+    -var-file=./packer/application/variables.json \
     ./packer/application/packer-template.json
 ```
 ```bash
 packer build \
-    -var-file=variables.json \
+    -var-file=./packer/application/variables.json \
     ./packer/one-tick/packer-template.json
 ```
