@@ -1,0 +1,8 @@
+{
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "region": "us-west-2",
+    "instance_type": "t2.medium",
+    "source_ami":"ami-0e8c04af2729ff1bb",
+    "ftp_password": ""
+}

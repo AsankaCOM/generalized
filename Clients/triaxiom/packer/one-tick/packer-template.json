@@ -2,10 +2,10 @@
   "variables": {
           "aws_access_key":"",
           "aws_secret_key":"",
-          "instance_type":"",
           "ftp_password":"",
-          "source_ami":"",
-          "region":""
+          "region":  "",
+          "instance_type": "",
+          "source_ami": ""
   },
   "builders": [{
           "type": "amazon-ebs",
