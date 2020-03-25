@@ -37,18 +37,25 @@ The following terraform templates launch infrastructure for Triaxiom
 
 1. Configure your credentials for AWS account
 
-2. Run the plan command to see what resources will be created
+2. Terraform init
+    ```bash
+    $ terraform init
+    ```
+
+3. terraform workspace new production
+
+4. Run the plan command to see what resources will be created
 
     ```bash
     $ terraform plan
     ```
-3. Run the apply command to start creting resources
+5. Run the apply command to start creting resources
     ```bash
     $ terraform apply
     ```
-4. Give appropiate values to variables to avoid errors.
+6. Give appropiate values to variables to avoid errors.
 
-5. To destroy all infra just run
+7. To destroy all infra just run
     ```bash
     $ terraform destroy
     ```

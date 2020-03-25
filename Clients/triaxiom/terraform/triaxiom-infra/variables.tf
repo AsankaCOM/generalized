@@ -105,6 +105,6 @@ variable "bastion_instance_key_name" {
 
 variable "tags" {
     description = "Tags to be applied to the resource"
-    default     = {Env = "Prod"}
+    default     = {}
     type        = map
 }
