@@ -2,6 +2,7 @@
   "variables": {
           "aws_access_key":"",
           "aws_secret_key":"",
+          "ftp_password":"",
           "region":  "",
           "instance_type": "",
           "source_ami": ""
@@ -24,6 +25,9 @@
     },
     {
       "type": "shell",
+      "environment_vars": [
+        "ftp_password={{user `ftp_password`}}"
+      ],
       "scripts": [
         "scripts/setup.sh"
       ]

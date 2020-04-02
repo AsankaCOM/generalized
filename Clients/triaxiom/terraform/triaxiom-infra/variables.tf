@@ -30,19 +30,19 @@ variable "identifier" {
 
 variable "onetick_vol_size" {
   description = "Volume size for one-tick instance"
-  default     = "500"
+  default     = "2000"
   type        = string
 }
 
 variable "app_vol_size" {
   description = "Volume size for app instance"
-  default     = "500"
+  default     = ""
   type        = string
 }
 
 variable "bastion_vol_size" {
   description = "Volume size for bastion instance"
-  default     = "500"
+  default     = ""
   type        = string
 }
 
