@@ -9,4 +9,4 @@ sudo mkdir /home/onetick/log/app /home/onetick/log/ft /home/onetick/log/ftstate 
 sudo chown -R onetick:onetick /home/onetick
 sudo su -l onetick -c "wget -r 'ftp://omddist:$ftp_password@ftp.onetick.com/dist/one_market_data_server_64_gcc4.8_Linux_x86_64.tar.gz'"
 sudo su -l onetick -c "tar xvf ftp.onetick.com/dist/one_market_data_server_64_gcc4.8_Linux_x86_64.tar.gz -C /home/onetick/build"
-sudo su -l onetick -c "one_market_data/one_tick/bin/get_host_info.exe"
+sudo su -l onetick -c "build/one_market_data/one_tick/bin/get_host_info.exe"
