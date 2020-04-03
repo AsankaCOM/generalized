@@ -90,3 +90,9 @@ variable "tags" {
   default     = {}
   type        = map
 }
+
+variable "instance_private_ip" {
+  description = "Private IP of instance"
+  default     = ""
+  type        = string
+}

@@ -49,13 +49,13 @@ variable "bastion_vol_size" {
 # amis
 variable "onetick_ami" {
   description = "Ami for onetick instance"
-  default     = "ami-0d04be32f605af0be"
+  default     = "ami-0884371c35da811fe"
   type        = string
 }
 
 variable "app_ami" {
   description = "Ami for app instance"
-  default     = "ami-092401364d7a54995"
+  default     = "ami-0a91b55345271ca8c"
   type        = string
 }
 
@@ -107,4 +107,22 @@ variable "tags" {
     description = "Tags to be applied to the resource"
     default     = {}
     type        = map
+}
+
+variable "onetick_private_ip" {
+  description = "Private ip for onetick instance"
+  default     = "172.16.123.180"
+  type        = string
+}
+
+variable "app_private_ip" {
+  description = "Private ip for app instance"
+  default     = "172.16.125.23"
+  type        = string
+}
+
+variable "bastion_private_ip" {
+  description = "Private ip for bastion instance"
+  default     = "172.16.18.58"
+  type        = string
 }
