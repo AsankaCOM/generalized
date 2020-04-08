@@ -1,0 +1,156 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Template to create an ElasticSearch domain
+
+Parameters:
+
+  Identifier:
+    Type: String
+    Description: A name identifier for the ElasticSearch domain
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: Choose which VPC this ElasticSearch domain belons to
+
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Subnet Ids for the ElasticSearch domain
+
+  SourceCidr:
+    Type: String
+    Description: CIDR block to allow traffic to the ES domain
+
+  InstanceType:
+    Type: String
+    Default: t2.small.elasticsearch
+    Description: Type of instance to use for the nodes
+
+  EbsEnabled:
+    Type: String
+    Default: true
+    Description: Specifies whether Amazon EBS volumes are attached to data nodes in the Amazon ES domain.
+
+  VolumeSize:
+    Type: Number
+    Default: 35
+    Description: Size in GB of the EBS volume attached on each node
+
+  VolumeType:
+    Type: String
+    Default: gp2
+    AllowedValues: [gp2, io1, st1,sc1]
+
+  NumberOfInstances:
+    Type: Number
+    Default: 2
+    Description: The number of data nodes (instances) to use in the Amazon ES domain
+
+  ElasticSearchVersion:
+    Type: String
+    Description: The version of Elasticsearch to use
+    Default: 2.3
+    AllowedValues: [7.1, 6.8, 6.7, 6.5, 6.4, 6.3, 6.2, 6.0, 5.6, 5.5, 5.3, 5.1, 2.3, 1.5]
+
+  SnapshotHour:
+    Type: Number
+    Default: 0
+    Description: The hour in UTC during which the service takes an automated daily snapshot
+    MaxValue: 23
+    MinValue: 0
+
+  OwnerName:
+    Type: String
+    Default: efabless
+    Description: An arbitrary tag name for the owner of these resources
+
+  StackName:
+    Type: String
+    Description: The name of the stack to which these resources belong
+
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues: [ production, staging, development ]
+    Description: Environment name to append to resources names and tags
+
+Resources:
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId
+      GroupName: !Sub ${Identifier}-${StackName}-es-sg
+      GroupDescription: Allow connections to the elasticsearch domain
+      SecurityGroupIngress:
+      # - { IpProtocol: 6, SourceSecurityGroupId: !Ref SourceSecurityGroup, FromPort: !Ref DBPort, ToPort: !Ref DBPort }
+      - { IpProtocol: 6, CidrIp: !Ref SourceCidr, FromPort: 443, ToPort: 443 }
+      - { IpProtocol: 6, CidrIp: !Ref SourceCidr, FromPort: 9000, ToPort: 9000 }
+      - { IpProtocol: 6, CidrIp: !Ref SourceCidr, FromPort: 9200, ToPort: 9200 }
+      SecurityGroupEgress:
+      - { IpProtocol: -1, CidrIp: "0.0.0.0/0" }
+      Tags:
+      - Key: Name
+        Value: !Sub ${Identifier}-${StackName}-es-sg
+      - Key: Owner
+        Value: !Ref OwnerName
+      - Key: StackName
+        Value: !Ref StackName
+      - Key: Environment
+        Value: !Ref Environment
+
+  ElasticSearchResource:
+    Type: AWS::Elasticsearch::Domain
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      DomainName: !Sub ${Identifier}-${StackName}
+      EBSOptions:
+        EBSEnabled: !Ref EbsEnabled
+        VolumeSize: !Ref VolumeSize
+        VolumeType: !Ref VolumeType
+      ElasticsearchClusterConfig:
+        InstanceCount: !Ref NumberOfInstances
+        InstanceType: !Ref InstanceType
+      ElasticsearchVersion: !Ref ElasticSearchVersion
+      SnapshotOptions:
+        AutomatedSnapshotStartHour: !Ref SnapshotHour
+      VPCOptions:
+        SecurityGroupIds: 
+        - !Ref SecurityGroup
+        SubnetIds: !Ref SubnetIds
+      AccessPolicies: !Sub |
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "*"
+              },
+              "Action": "es:*",
+              "Resource": "arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${Identifier}-${StackName}/*"
+            }
+          ]
+        }
+      Tags:
+        - Key: OwnerName
+          Value: !Ref OwnerName
+        - Key: StackName
+          Value: !Ref StackName
+        - Key: Environment
+          Value: !Ref Environment
+
+Outputs:
+
+  EsArn:
+    Description: Elastic Search ARN
+    Value: !GetAtt ElasticSearchResource.Arn
+
+  EsDomainArn:
+    Description: Elastic Search Domain ARN
+    Value: !GetAtt ElasticSearchResource.DomainArn
+
+  EsEndpoint:
+    Description: Elastic Search Endpoint
+    Value: !GetAtt ElasticSearchResource.DomainEndpoint
